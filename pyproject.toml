@@ -110,11 +110,56 @@ line-length = 120
 src = ["src"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "RUF"]
-ignore = ["E501"]
+select = [
+    "E",     # pycodestyle errors
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "W",     # pycodestyle warnings
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "C4",    # flake8-comprehensions
+    "SIM",   # flake8-simplify
+    "RUF",   # ruff-specific rules
+    "A",     # flake8-builtins
+    "S",     # flake8-bandit (security)
+    "T20",   # flake8-print
+    "PTH",   # flake8-use-pathlib
+    "PL",    # pylint
+    "PERF",  # perflint (performance)
+    "FLY",   # flynt (f-string conversion)
+    "TID",   # flake8-tidy-imports
+]
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "S101",    # use of assert (common in tests)
+    "PLR0913", # too many arguments
+    "PLR2004", # magic value in comparison
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S101",   # assert allowed in tests
+    "T20",    # print allowed in tests
+    "PLR2004", # magic values ok in tests
+]
+"examples/**/*.py" = ["T20"]  # print allowed in examples
 
 [tool.ruff.lint.isort]
 known-first-party = ["pyspark_pipeline_framework"]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+max-branches = 15
+max-returns = 8
+max-statements = 60
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.black]
 line-length = 120
@@ -127,8 +172,48 @@ known_first_party = ["pyspark_pipeline_framework"]
 
 [tool.mypy]
 python_version = "3.9"
-warn_return_any = true
-warn_unused_configs = true
-ignore_missing_imports = true
+mypy_path = "src"
 explicit_package_bases = true
 namespace_packages = true
+
+# Strict mode options
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+extra_checks = true
+
+# Type checking
+check_untyped_defs = true
+disallow_untyped_calls = false  # Too strict for PySpark
+disallow_untyped_defs = false   # Too strict for PySpark
+disallow_incomplete_defs = true
+disallow_untyped_decorators = false  # PySpark uses many decorators
+no_implicit_optional = true
+no_implicit_reexport = true
+
+# Error reporting
+show_error_codes = true
+show_column_numbers = true
+show_error_context = true
+pretty = true
+
+# Per-module overrides for third-party libraries without type stubs
+[[tool.mypy.overrides]]
+module = [
+    "pyspark.*",
+    "dataconf.*",
+    "structlog.*",
+    "boto3.*",
+    "hvac.*",
+    "prometheus_client.*",
+    "opentelemetry.*",
+]
+ignore_missing_imports = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv", "build", "dist"]
+skips = ["B101"]  # Skip assert_used check (common in tests)
