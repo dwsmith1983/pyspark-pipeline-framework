@@ -1,0 +1,134 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyspark-pipeline-framework"
+version = "0.1.0"
+description = "Configuration-driven PySpark pipeline framework with HOCON"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.9,<3.14"
+authors = [{name = "Your Name", email = "you@example.com"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+keywords = ["pyspark", "spark", "pipeline", "etl", "data-engineering", "hocon"]
+
+dependencies = [
+    "dataconf>=3.4",
+    "structlog>=23.0",
+]
+
+[project.optional-dependencies]
+spark = ["pyspark>=3.4,<5.0"]
+aws = ["boto3>=1.28"]
+vault = ["hvac>=1.0"]
+metrics = ["prometheus-client>=0.17", "opentelemetry-api>=1.20"]
+all = ["pyspark-pipeline-framework[spark,aws,vault,metrics]"]
+dev = [
+    "pyspark-pipeline-framework[all]",
+    "pytest>=7.4",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.0",
+    "mypy>=1.5",
+    "ruff>=0.1",
+    "black>=23.0",
+    "isort>=5.12",
+    "pre-commit>=3.4",
+    "sphinx>=7.0",
+    "furo",
+    "myst-parser",
+]
+test = [
+    "pytest>=7.4",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.0",
+]
+docs = [
+    "sphinx>=7.0",
+    "furo",
+    "myst-parser",
+    "sphinx-copybutton",
+]
+
+[project.scripts]
+ppf-run = "pyspark_pipeline_framework.runner.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/OWNER/pyspark-pipeline-framework"
+Documentation = "https://pyspark-pipeline-framework.readthedocs.io"
+Repository = "https://github.com/OWNER/pyspark-pipeline-framework"
+Issues = "https://github.com/OWNER/pyspark-pipeline-framework/issues"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "examples", "README.md", "LICENSE"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pyspark_pipeline_framework"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+markers = [
+    "slow: marks tests as slow",
+    "spark: marks tests requiring Spark",
+    "integration: marks integration tests",
+]
+
+[tool.coverage.run]
+source = ["src/pyspark_pipeline_framework"]
+branch = true
+omit = ["*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+]
+fail_under = 80
+
+[tool.ruff]
+target-version = "py39"
+line-length = 120
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pyspark_pipeline_framework"]
+
+[tool.black]
+line-length = 120
+target-version = ["py39", "py310", "py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 120
+known_first_party = ["pyspark_pipeline_framework"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+explicit_package_bases = true
+namespace_packages = true

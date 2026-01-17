@@ -1,0 +1,63 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+build/
+dist/
+wheels/
+sdist/
+
+# Testing/coverage
+.pytest_cache/
+.hypothesis/
+.coverage*
+htmlcov/
+.benchmarks/
+
+# Mutation testing
+.mutmut-cache
+.mutmut-results/
+mutants/
+
+# Type checking
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Linting
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+.env
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Spark
+metastore_db/
+derby.log
+spark-warehouse/
+
+# Documentation
+docs/_build/
+
+# Project-specific (GT workflow)
+.claude/
+.beads/
+.logs/
+state.json
