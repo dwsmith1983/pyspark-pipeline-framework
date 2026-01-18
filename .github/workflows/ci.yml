@@ -144,7 +144,7 @@ jobs:
           pip install -e ".[all]"
 
       - name: Run pip-audit
-        uses: pypa/gh-action-pip-audit@v1.0.8
+        uses: pypa/gh-action-pip-audit@v1.1.0
         with:
           inputs: pyproject.toml
           ignore-vulns: |
