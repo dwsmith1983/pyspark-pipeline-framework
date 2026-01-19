@@ -9,7 +9,7 @@ description = "Configuration-driven PySpark pipeline framework with HOCON"
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9,<3.14"
-authors = [{name = "Your Name", email = "you@example.com"}]
+authors = [{name = "Dustin Smith", email = "dustin.william.smith@gmail.com"}]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -66,10 +66,10 @@ docs = [
 ppf-run = "pyspark_pipeline_framework.runner.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/OWNER/pyspark-pipeline-framework"
+Homepage = "https://github.com/dwsmith1983/pyspark-pipeline-framework"
 Documentation = "https://pyspark-pipeline-framework.readthedocs.io"
-Repository = "https://github.com/OWNER/pyspark-pipeline-framework"
-Issues = "https://github.com/OWNER/pyspark-pipeline-framework/issues"
+Repository = "https://github.com/dwsmith1983/pyspark-pipeline-framework"
+Issues = "https://github.com/dwsmith1983/pyspark-pipeline-framework/issues"
 
 [tool.hatch.build.targets.sdist]
 include = ["src", "tests", "examples", "README.md", "LICENSE"]
