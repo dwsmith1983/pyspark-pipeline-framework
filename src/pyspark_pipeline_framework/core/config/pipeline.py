@@ -64,9 +64,7 @@ class PipelineConfig:
         for component in self.components:
             for dep in component.depends_on:
                 if dep not in component_names:
-                    raise ValueError(
-                        f"Component '{component.name}' depends on unknown component '{dep}'"
-                    )
+                    raise ValueError(f"Component '{component.name}' depends on unknown component '{dep}'")
 
         # Detect circular dependencies
         self._validate_no_circular_dependencies()
@@ -98,9 +96,7 @@ class PipelineConfig:
         # Check each component
         for component in self.components:
             if component.name not in visited and has_cycle(component.name):
-                raise ValueError(
-                    f"Circular dependency detected involving component '{component.name}'"
-                )
+                raise ValueError(f"Circular dependency detected involving component '{component.name}'")
 
     def get_component(self, name: str) -> ComponentConfig | None:
         """Get a component by name.
