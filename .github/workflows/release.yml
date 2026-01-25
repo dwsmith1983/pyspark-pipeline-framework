@@ -50,7 +50,7 @@ jobs:
       url: https://pypi.org/p/pyspark-pipeline-framework
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist-packages
           path: dist/
@@ -68,7 +68,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist-packages
           path: dist/
