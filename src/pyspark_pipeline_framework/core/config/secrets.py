@@ -1,7 +1,6 @@
 """Secrets management configuration models."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 from .base import SecretsProvider
 
@@ -13,19 +12,19 @@ class SecretsConfig:
     provider: SecretsProvider = SecretsProvider.ENV
     """Secrets provider (default: env)"""
 
-    vault_url: Optional[str] = None
+    vault_url: str | None = None
     """HashiCorp Vault URL (required for vault provider)"""
 
-    vault_token: Optional[str] = None
+    vault_token: str | None = None
     """Vault authentication token (optional, can use env var VAULT_TOKEN)"""
 
-    vault_namespace: Optional[str] = None
+    vault_namespace: str | None = None
     """Vault namespace (optional)"""
 
-    aws_region: Optional[str] = None
+    aws_region: str | None = None
     """AWS region for Secrets Manager (required for aws_secrets_manager provider)"""
 
-    secret_prefix: Optional[str] = None
+    secret_prefix: str | None = None
     """Prefix for secret keys (optional)"""
 
     cache_ttl_seconds: int = 300
@@ -39,10 +38,5 @@ class SecretsConfig:
         if self.provider == SecretsProvider.VAULT and not self.vault_url:
             raise ValueError("vault_url is required when provider is vault")
 
-        if (
-            self.provider == SecretsProvider.AWS_SECRETS_MANAGER
-            and not self.aws_region
-        ):
-            raise ValueError(
-                "aws_region is required when provider is aws_secrets_manager"
-            )
+        if self.provider == SecretsProvider.AWS_SECRETS_MANAGER and not self.aws_region:
+            raise ValueError("aws_region is required when provider is aws_secrets_manager")

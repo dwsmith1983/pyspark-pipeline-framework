@@ -146,7 +146,6 @@ jobs:
       - name: Run pip-audit
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
-          inputs: pyproject.toml
           ignore-vulns: |
             GHSA-wfm5-v35h-vwf4
             GHSA-cwvm-v4w8-q58c

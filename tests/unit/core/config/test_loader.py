@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from pyspark_pipeline_framework.core.config import (
     PipelineConfig,
     SparkConfig,
@@ -150,7 +148,6 @@ class TestLoadFromString:
         assert config.name == "test-pipeline"
         assert config.version == "1.0.0"
         assert config.spark.app_name == "test-app"
-
 
     def test_load_spark_config_from_string(self) -> None:
         """Test loading SparkConfig from HOCON string."""

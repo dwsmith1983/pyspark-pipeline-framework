@@ -27,9 +27,7 @@ class TestPipelineConfig:
             )
         ]
 
-        config = PipelineConfig(
-            name="test-pipeline", version="1.0.0", spark=spark, components=components
-        )
+        config = PipelineConfig(name="test-pipeline", version="1.0.0", spark=spark, components=components)
 
         assert config.name == "test-pipeline"
         assert config.version == "1.0.0"

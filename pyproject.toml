@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Configuration-driven PySpark pipeline framework with HOCON"
 readme = "README.md"
 license = {text = "Apache-2.0"}
-requires-python = ">=3.9,<3.14"
+requires-python = ">=3.10,<3.14"
 authors = [{name = "Dustin Smith", email = "dustin.william.smith@gmail.com"}]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -105,7 +105,7 @@ exclude_lines = [
 fail_under = 80
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 line-length = 120
 src = ["src"]
 
@@ -118,7 +118,7 @@ known-first-party = ["pyspark_pipeline_framework"]
 
 [tool.black]
 line-length = 120
-target-version = ["py39", "py310", "py311", "py312"]
+target-version = ["py310", "py311", "py312"]
 
 [tool.isort]
 profile = "black"
@@ -126,7 +126,8 @@ line_length = 120
 known_first_party = ["pyspark_pipeline_framework"]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
+mypy_path = "src"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true

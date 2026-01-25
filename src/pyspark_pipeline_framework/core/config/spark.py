@@ -51,9 +51,7 @@ class SparkConfig:
             raise ValueError("executor_cores must be at least 1")
 
         if self.num_executors < 1 and not self.dynamic_allocation:
-            raise ValueError(
-                "num_executors must be at least 1 when dynamic_allocation is False"
-            )
+            raise ValueError("num_executors must be at least 1 when dynamic_allocation is False")
 
     def to_spark_conf_dict(self) -> dict[str, str]:
         """Convert to Spark configuration dictionary.

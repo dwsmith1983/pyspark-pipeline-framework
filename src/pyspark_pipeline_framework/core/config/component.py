@@ -1,7 +1,7 @@
 """Component configuration models."""
 
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from .base import ComponentType
 from .retry import CircuitBreakerConfig, RetryConfig
@@ -29,10 +29,10 @@ class ComponentConfig:
     depends_on: list[str] = field(default_factory=list)
     """Names of prerequisite components that must complete first (default: [])"""
 
-    retry: Optional[RetryConfig] = None
+    retry: RetryConfig | None = None
     """Retry configuration for this component (optional)"""
 
-    circuit_breaker: Optional[CircuitBreakerConfig] = None
+    circuit_breaker: CircuitBreakerConfig | None = None
     """Circuit breaker configuration for this component (optional)"""
 
     enabled: bool = True
@@ -48,6 +48,4 @@ class ComponentConfig:
 
         # Validate no circular dependencies at the component level
         if self.name in self.depends_on:
-            raise ValueError(
-                f"Component '{self.name}' cannot depend on itself"
-            )
+            raise ValueError(f"Component '{self.name}' cannot depend on itself")

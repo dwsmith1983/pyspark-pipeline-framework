@@ -1,7 +1,6 @@
 """Lifecycle hooks configuration models."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 from .base import LogFormat, LogLevel, MetricsBackend
 
@@ -33,7 +32,7 @@ class MetricsConfig:
     backend: MetricsBackend = MetricsBackend.PROMETHEUS
     """Metrics backend to use (default: prometheus)"""
 
-    push_gateway_url: Optional[str] = None
+    push_gateway_url: str | None = None
     """URL for metrics push gateway (optional)"""
 
     export_interval_seconds: int = 60
@@ -74,10 +73,10 @@ class HooksConfig:
     logging: LoggingConfig = None  # type: ignore
     """Logging configuration"""
 
-    metrics: Optional[MetricsConfig] = None
+    metrics: MetricsConfig | None = None
     """Metrics configuration (optional)"""
 
-    audit: Optional[AuditConfig] = None
+    audit: AuditConfig | None = None
     """Audit configuration (optional)"""
 
     def __post_init__(self) -> None:

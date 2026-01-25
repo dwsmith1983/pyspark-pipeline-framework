@@ -1,7 +1,6 @@
 """Pipeline configuration models."""
 
 from dataclasses import dataclass, field
-from typing import Optional
 
 from .base import Environment, PipelineMode
 from .component import ComponentConfig
@@ -39,7 +38,7 @@ class PipelineConfig:
     hooks: HooksConfig = field(default_factory=HooksConfig)
     """Lifecycle hooks configuration (default: HooksConfig with defaults)"""
 
-    secrets: Optional[SecretsConfig] = None
+    secrets: SecretsConfig | None = None
     """Secrets management configuration (optional)"""
 
     tags: dict[str, str] = field(default_factory=dict)
@@ -65,10 +64,7 @@ class PipelineConfig:
         for component in self.components:
             for dep in component.depends_on:
                 if dep not in component_names:
-                    raise ValueError(
-                        f"Component '{component.name}' depends on unknown "
-                        f"component '{dep}'"
-                    )
+                    raise ValueError(f"Component '{component.name}' depends on unknown component '{dep}'")
 
         # Detect circular dependencies
         self._validate_no_circular_dependencies()
@@ -99,14 +95,10 @@ class PipelineConfig:
 
         # Check each component
         for component in self.components:
-            if component.name not in visited:
-                if has_cycle(component.name):
-                    raise ValueError(
-                        f"Circular dependency detected involving component "
-                        f"'{component.name}'"
-                    )
+            if component.name not in visited and has_cycle(component.name):
+                raise ValueError(f"Circular dependency detected involving component '{component.name}'")
 
-    def get_component(self, name: str) -> Optional[ComponentConfig]:
+    def get_component(self, name: str) -> ComponentConfig | None:
         """Get a component by name.
 
         Args:

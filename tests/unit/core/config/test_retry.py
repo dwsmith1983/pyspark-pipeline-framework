@@ -50,14 +50,12 @@ class TestRetryConfig:
 
     def test_validation_max_delay(self) -> None:
         """Test validation for max_delay_seconds."""
-        with pytest.raises(
-            ValueError, match="max_delay_seconds must be >= initial_delay_seconds"
-        ):
+        with pytest.raises(ValueError, match="max_delay_seconds must be >= initial_delay_seconds"):
             RetryConfig(initial_delay_seconds=10.0, max_delay_seconds=5.0)
 
     def test_validation_backoff_multiplier(self) -> None:
         """Test validation for backoff_multiplier."""
-        with pytest.raises(ValueError, match="backoff_multiplier must be >= 1.0"):
+        with pytest.raises(ValueError, match=r"backoff_multiplier must be >= 1.0"):
             RetryConfig(backoff_multiplier=0.5)
 
 
