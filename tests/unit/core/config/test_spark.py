@@ -74,16 +74,12 @@ class TestSparkConfig:
             ValueError,
             match="num_executors must be at least 1 when dynamic_allocation is False",
         ):
-            SparkConfig(
-                app_name="test-app", num_executors=0, dynamic_allocation=False
-            )
+            SparkConfig(app_name="test-app", num_executors=0, dynamic_allocation=False)
 
     def test_validation_num_executors_with_dynamic_allocation(self) -> None:
         """Test that num_executors validation is skipped with dynamic allocation."""
         # Should not raise an error
-        config = SparkConfig(
-            app_name="test-app", num_executors=0, dynamic_allocation=True
-        )
+        config = SparkConfig(app_name="test-app", num_executors=0, dynamic_allocation=True)
         assert config.num_executors == 0
         assert config.dynamic_allocation is True
 

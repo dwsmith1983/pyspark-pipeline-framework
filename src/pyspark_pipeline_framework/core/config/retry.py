@@ -32,9 +32,7 @@ class RetryConfig:
         if self.initial_delay_seconds <= 0:
             raise ValueError("initial_delay_seconds must be positive")
         if self.max_delay_seconds < self.initial_delay_seconds:
-            raise ValueError(
-                "max_delay_seconds must be >= initial_delay_seconds"
-            )
+            raise ValueError("max_delay_seconds must be >= initial_delay_seconds")
         if self.backoff_multiplier < 1.0:
             raise ValueError("backoff_multiplier must be >= 1.0")
 

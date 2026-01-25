@@ -4,8 +4,7 @@ This module provides functions for loading configuration from HOCON files,
 strings, and environment variables using dataconf.
 """
 
-import os
-from typing import TypeVar
+from typing import TypeVar, cast
 
 import dataconf
 
@@ -25,7 +24,7 @@ def load_from_file(path: str, config_class: type[T]) -> T:
     Example:
         >>> config = load_from_file("pipeline.conf", PipelineConfig)
     """
-    return dataconf.file(path, config_class)
+    return cast(T, dataconf.file(path, config_class))
 
 
 def load_from_string(hocon_str: str, config_class: type[T]) -> T:
@@ -47,7 +46,7 @@ def load_from_string(hocon_str: str, config_class: type[T]) -> T:
         ... '''
         >>> config = load_from_string(hocon, PipelineConfig)
     """
-    return dataconf.string(hocon_str, config_class)
+    return cast(T, dataconf.string(hocon_str, config_class))
 
 
 def load_from_env(prefix: str, config_class: type[T]) -> T:
@@ -68,4 +67,4 @@ def load_from_env(prefix: str, config_class: type[T]) -> T:
         Environment variables should use the format: PREFIX_FIELD_NAME=value
         Nested fields use underscores: PREFIX_SPARK_APP_NAME=my-app
     """
-    return dataconf.env(prefix, config_class)
+    return cast(T, dataconf.env(prefix, config_class))
