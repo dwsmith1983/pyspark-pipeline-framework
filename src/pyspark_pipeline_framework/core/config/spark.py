@@ -39,6 +39,9 @@ class SparkConfig:
     spark_conf: dict[str, str] = field(default_factory=dict)
     """Additional Spark configuration properties (default: {})"""
 
+    connect_string: str | None = None
+    """Spark Connect remote URL (e.g., 'sc://localhost:15002') for Spark 3.4+"""
+
     def __post_init__(self) -> None:
         """Validate configuration after initialization."""
         if not self.app_name:
