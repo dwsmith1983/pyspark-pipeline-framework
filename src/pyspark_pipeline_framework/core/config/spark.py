@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 
-from .base import SparkDeployMode
+from pyspark_pipeline_framework.core.config.base import SparkDeployMode
 
 
 @dataclass

@@ -2,11 +2,11 @@
 
 from dataclasses import dataclass, field
 
-from .base import Environment, PipelineMode
-from .component import ComponentConfig
-from .hooks import HooksConfig
-from .secrets import SecretsConfig
-from .spark import SparkConfig
+from pyspark_pipeline_framework.core.config.base import Environment, PipelineMode
+from pyspark_pipeline_framework.core.config.component import ComponentConfig
+from pyspark_pipeline_framework.core.config.hooks import HooksConfig
+from pyspark_pipeline_framework.core.config.secrets import SecretsConfig
+from pyspark_pipeline_framework.core.config.spark import SparkConfig
 
 
 @dataclass

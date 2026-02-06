@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .base import SecretsProvider
+from pyspark_pipeline_framework.core.config.base import SecretsProvider
 
 
 @dataclass

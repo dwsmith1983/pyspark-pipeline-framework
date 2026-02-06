@@ -4,7 +4,7 @@ This package provides dataconf-based configuration models for defining
 PySpark pipelines in a type-safe, declarative manner using HOCON format.
 """
 
-from .base import (
+from pyspark_pipeline_framework.core.config.base import (
     ComponentType,
     Environment,
     LogFormat,
@@ -14,13 +14,13 @@ from .base import (
     SecretsProvider,
     SparkDeployMode,
 )
-from .component import ComponentConfig
-from .hooks import AuditConfig, HooksConfig, LoggingConfig, MetricsConfig
-from .loader import load_from_env, load_from_file, load_from_string
-from .pipeline import PipelineConfig
-from .retry import CircuitBreakerConfig, RetryConfig
-from .secrets import SecretsConfig
-from .spark import SparkConfig
+from pyspark_pipeline_framework.core.config.component import ComponentConfig
+from pyspark_pipeline_framework.core.config.hooks import AuditConfig, HooksConfig, LoggingConfig, MetricsConfig
+from pyspark_pipeline_framework.core.config.loader import load_from_env, load_from_file, load_from_string
+from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
+from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
+from pyspark_pipeline_framework.core.config.secrets import SecretsConfig
+from pyspark_pipeline_framework.core.config.spark import SparkConfig
 
 __all__ = [
     "AuditConfig",

@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from .base import LogFormat, LogLevel, MetricsBackend
+from pyspark_pipeline_framework.core.config.base import LogFormat, LogLevel, MetricsBackend
 
 
 @dataclass

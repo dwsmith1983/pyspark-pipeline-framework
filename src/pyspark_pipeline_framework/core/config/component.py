@@ -3,8 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import ComponentType
-from .retry import CircuitBreakerConfig, RetryConfig
+from pyspark_pipeline_framework.core.config.base import ComponentType
+from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
 
 
 @dataclass

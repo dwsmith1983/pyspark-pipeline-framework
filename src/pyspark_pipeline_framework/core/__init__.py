@@ -1,5 +1,5 @@
 """Core functionality for pyspark-pipeline-framework."""
 
-from . import config
+from pyspark_pipeline_framework.core import config
 
 __all__ = ["config"]
