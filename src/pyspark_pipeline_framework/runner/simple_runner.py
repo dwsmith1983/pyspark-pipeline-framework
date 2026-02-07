@@ -11,6 +11,7 @@ from typing import Any
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.loader import load_from_file
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
+from pyspark_pipeline_framework.core.config.validator import validate_pipeline
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import (
     CircuitBreaker,
     CircuitBreakerOpenError,
@@ -42,6 +43,8 @@ class SimplePipelineRunner:
         fail_fast: Stop on first component failure (default: ``True``).
         clock: Injectable monotonic clock for testing.
         sleep_func: Injectable sleep for testing retry delays.
+        validate_before_run: Run static config validation before execution
+            (default: ``True``).  Set to ``False`` to skip pre-flight checks.
     """
 
     def __init__(
@@ -52,6 +55,7 @@ class SimplePipelineRunner:
         fail_fast: bool = True,
         clock: Callable[[], float] | None = None,
         sleep_func: Callable[[float], None] | None = None,
+        validate_before_run: bool = True,
     ) -> None:
         self._config = config
         self._spark_wrapper = spark_wrapper or SparkSessionWrapper(config.spark)
@@ -59,6 +63,7 @@ class SimplePipelineRunner:
         self._fail_fast = fail_fast
         self._clock = clock or time.monotonic
         self._sleep_func = sleep_func
+        self._validate_before_run = validate_before_run
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
     @classmethod
@@ -91,6 +96,21 @@ class SimplePipelineRunner:
             ``PipelineResult`` with per-component outcomes and overall status.
         """
         start = self._clock()
+
+        # Pre-flight config validation
+        if self._validate_before_run:
+            validation = validate_pipeline(self._config)
+            for w in validation.warnings:
+                logger.warning("Validation warning: %s", w)
+            if not validation.is_valid:
+                errors_msg = "; ".join(e.message for e in validation.errors)
+                logger.error("Pipeline validation failed: %s", errors_msg)
+                return PipelineResult(
+                    status=PipelineResultStatus.FAILURE,
+                    pipeline_name=self._config.name,
+                    total_duration_ms=int((self._clock() - start) * 1000),
+                )
+
         self._call_hook("before_pipeline", self._config)
 
         execution_order = self._config.get_execution_order()

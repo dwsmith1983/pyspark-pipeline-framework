@@ -119,6 +119,7 @@ def _make_runner(
     fail_fast: bool = True,
     hooks: Any = None,
     clock: Any = None,
+    validate_before_run: bool = True,
 ) -> SimplePipelineRunner:
     config = _make_pipeline_config(components)
     return SimplePipelineRunner(
@@ -128,6 +129,7 @@ def _make_runner(
         fail_fast=fail_fast,
         clock=clock,
         sleep_func=lambda _: None,
+        validate_before_run=validate_before_run,
     )
 
 
@@ -262,12 +264,15 @@ class TestExecutionOrder:
                 side_effect=lambda c: _TrackA() if "TrackA" in c.class_path else _TrackB(),
             ),
         ):
-            runner = _make_runner([
-                _make_component_config(
-                    "b", class_path="fake.TrackB", depends_on=["a"]
-                ),
-                _make_component_config("a", class_path="fake.TrackA"),
-            ])
+            runner = _make_runner(
+                [
+                    _make_component_config(
+                        "b", class_path="fake.TrackB", depends_on=["a"]
+                    ),
+                    _make_component_config("a", class_path="fake.TrackA"),
+                ],
+                validate_before_run=False,
+            )
             runner.run()
 
         assert execution_log == ["a", "b"]
@@ -392,14 +397,29 @@ class TestHookFailureSwallowed:
 
 
 class TestInstantiationFailure:
-    """Bad class_path → failed ComponentResult (not a crash)."""
+    """Bad class_path → failed result (not a crash)."""
 
-    def test_bad_class_path(self) -> None:
+    def test_bad_class_path_caught_by_validation(self) -> None:
         runner = _make_runner([
             _make_component_config(
                 "bad", class_path="no.such.Module"
             ),
         ])
+        result = runner.run()
+
+        assert result.status == PipelineResultStatus.FAILURE
+        # Validation catches it before execution, so no component results
+        assert result.component_results == []
+
+    def test_bad_class_path_without_validation(self) -> None:
+        runner = _make_runner(
+            [
+                _make_component_config(
+                    "bad", class_path="no.such.Module"
+                ),
+            ],
+            validate_before_run=False,
+        )
         result = runner.run()
 
         assert result.status == PipelineResultStatus.FAILURE
@@ -502,3 +522,80 @@ class TestResume:
 
         assert result.status == PipelineResultStatus.SUCCESS
         assert result.component_results == []
+
+
+class TestValidateBeforeRun:
+    """Tests for the validate_before_run parameter."""
+
+    def test_enabled_by_default(self) -> None:
+        config = _make_pipeline_config([_make_component_config("a")])
+        runner = SimplePipelineRunner(
+            config,
+            spark_wrapper=make_mock_spark_wrapper(),
+            sleep_func=lambda _: None,
+        )
+        assert runner._validate_before_run is True
+
+    def test_valid_config_runs_normally(self) -> None:
+        runner = _make_runner([_make_component_config("a")])
+        result = runner.run()
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        assert len(result.component_results) == 1
+
+    def test_bad_class_path_fails_before_execution(self) -> None:
+        runner = _make_runner([
+            _make_component_config("bad", class_path="no.such.Module"),
+        ])
+        result = runner.run()
+
+        assert result.status == PipelineResultStatus.FAILURE
+        assert result.component_results == []
+
+    def test_disabled_skips_validation(self) -> None:
+        runner = _make_runner(
+            [_make_component_config("bad", class_path="no.such.Module")],
+            validate_before_run=False,
+        )
+        result = runner.run()
+
+        # Fails at instantiation, not validation — so we get a component result
+        assert result.status == PipelineResultStatus.FAILURE
+        assert len(result.component_results) == 1
+        assert result.component_results[0].error is not None
+
+    def test_hooks_not_called_on_validation_failure(self) -> None:
+        hooks = MagicMock(spec=NoOpHooks)
+        runner = _make_runner(
+            [_make_component_config("bad", class_path="no.such.Module")],
+            hooks=hooks,
+        )
+        runner.run()
+
+        hooks.before_pipeline.assert_not_called()
+        hooks.after_pipeline.assert_not_called()
+
+    def test_from_file_passes_validate_before_run(self, tmp_path: Any) -> None:
+        hocon = tmp_path / "pipeline.conf"
+        hocon.write_text("""\
+{
+  name = "file-pipeline"
+  version = "2.0.0"
+  spark { app_name = "test" }
+  components = [
+    {
+      name = "a"
+      component_type = "transformation"
+      class_path = "%s._SuccessComponent"
+    }
+  ]
+}
+""" % __name__)
+
+        runner = SimplePipelineRunner.from_file(
+            hocon,
+            spark_wrapper=make_mock_spark_wrapper(),
+            sleep_func=lambda _: None,
+            validate_before_run=False,
+        )
+        assert runner._validate_before_run is False
