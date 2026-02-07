@@ -1,0 +1,274 @@
+"""Tests for built-in streaming sinks."""
+
+from __future__ import annotations
+
+from unittest.mock import MagicMock
+
+from pyspark_pipeline_framework.runtime.streaming.base import OutputMode
+from pyspark_pipeline_framework.runtime.streaming.sinks import (
+    ConsoleStreamingSink,
+    DeltaStreamingSink,
+    FileStreamingSink,
+    IcebergStreamingSink,
+    KafkaStreamingSink,
+)
+
+
+# ===================================================================
+# TestKafkaStreamingSink
+# ===================================================================
+
+
+class TestKafkaStreamingSink:
+    def _fluent_df(self) -> MagicMock:
+        df = MagicMock()
+        writer = MagicMock()
+        writer.option.return_value = writer  # fluent chain
+        df.writeStream.format.return_value = writer
+        return df
+
+    def test_write_stream_builds_chain(self) -> None:
+        df = self._fluent_df()
+        sink = KafkaStreamingSink(
+            bootstrap_servers="broker:9092",
+            topic="output",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("kafka")
+        writer = df.writeStream.format.return_value
+        writer.option.assert_any_call("kafka.bootstrap.servers", "broker:9092")
+
+    def test_topic_option(self) -> None:
+        df = self._fluent_df()
+        sink = KafkaStreamingSink(
+            bootstrap_servers="b:9092",
+            topic="my-topic",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.option.assert_any_call("topic", "my-topic")
+
+    def test_default_output_mode(self) -> None:
+        sink = KafkaStreamingSink(
+            bootstrap_servers="b:9092",
+            topic="t",
+            checkpoint_location="/ckpt",
+        )
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_checkpoint_location(self) -> None:
+        sink = KafkaStreamingSink(
+            bootstrap_servers="b:9092",
+            topic="t",
+            checkpoint_location="/my/ckpt",
+        )
+        assert sink.checkpoint_location == "/my/ckpt"
+
+
+# ===================================================================
+# TestDeltaStreamingSink
+# ===================================================================
+
+
+class TestDeltaStreamingSink:
+    def test_write_stream_builds_chain(self) -> None:
+        df = MagicMock()
+        sink = DeltaStreamingSink(
+            path="/delta/table", checkpoint_location="/ckpt"
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("delta")
+        chain = df.writeStream.format.return_value
+        chain.option.assert_called_once_with("path", "/delta/table")
+
+    def test_partition_by(self) -> None:
+        df = MagicMock()
+        sink = DeltaStreamingSink(
+            path="/delta/table",
+            checkpoint_location="/ckpt",
+            partition_by=["date", "region"],
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_called_once_with("date", "region")
+
+    def test_no_partition_by(self) -> None:
+        df = MagicMock()
+        sink = DeltaStreamingSink(
+            path="/delta/table", checkpoint_location="/ckpt"
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_not_called()
+
+    def test_default_output_mode(self) -> None:
+        sink = DeltaStreamingSink(
+            path="/delta/table", checkpoint_location="/ckpt"
+        )
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_custom_output_mode(self) -> None:
+        sink = DeltaStreamingSink(
+            path="/p",
+            checkpoint_location="/c",
+            output_mode=OutputMode.COMPLETE,
+        )
+        assert sink.output_mode == OutputMode.COMPLETE
+
+
+# ===================================================================
+# TestConsoleStreamingSink
+# ===================================================================
+
+
+class TestConsoleStreamingSink:
+    def test_write_stream_builds_chain(self) -> None:
+        df = MagicMock()
+        sink = ConsoleStreamingSink()
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("console")
+        chain = df.writeStream.format.return_value
+        chain.option.assert_called_once_with("truncate", False)
+
+    def test_truncate_true(self) -> None:
+        df = MagicMock()
+        sink = ConsoleStreamingSink(truncate=True)
+        sink.write_stream(df)
+
+        chain = df.writeStream.format.return_value
+        chain.option.assert_called_once_with("truncate", True)
+
+    def test_default_checkpoint(self) -> None:
+        sink = ConsoleStreamingSink()
+        assert sink.checkpoint_location == "/tmp/console-checkpoint"
+
+    def test_default_output_mode(self) -> None:
+        sink = ConsoleStreamingSink()
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_query_name_default_none(self) -> None:
+        sink = ConsoleStreamingSink()
+        assert sink.query_name is None
+
+
+# ===================================================================
+# TestIcebergStreamingSink
+# ===================================================================
+
+
+class TestIcebergStreamingSink:
+    def test_write_stream_builds_chain(self) -> None:
+        df = MagicMock()
+        sink = IcebergStreamingSink(
+            table="catalog.db.events",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("iceberg")
+        chain = df.writeStream.format.return_value
+        chain.option.assert_called_once_with("path", "catalog.db.events")
+
+    def test_partition_by(self) -> None:
+        df = MagicMock()
+        sink = IcebergStreamingSink(
+            table="catalog.db.events",
+            checkpoint_location="/ckpt",
+            partition_by=["date"],
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_called_once_with("date")
+
+    def test_no_partition_by(self) -> None:
+        df = MagicMock()
+        sink = IcebergStreamingSink(
+            table="catalog.db.events",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_not_called()
+
+    def test_default_output_mode(self) -> None:
+        sink = IcebergStreamingSink(
+            table="catalog.db.events",
+            checkpoint_location="/ckpt",
+        )
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_checkpoint_location(self) -> None:
+        sink = IcebergStreamingSink(
+            table="catalog.db.events",
+            checkpoint_location="/my/ckpt",
+        )
+        assert sink.checkpoint_location == "/my/ckpt"
+
+
+# ===================================================================
+# TestFileStreamingSink
+# ===================================================================
+
+
+class TestFileStreamingSink:
+    def test_write_stream_builds_chain(self) -> None:
+        df = MagicMock()
+        sink = FileStreamingSink(
+            path="/output/data", checkpoint_location="/ckpt"
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("parquet")
+        chain = df.writeStream.format.return_value
+        chain.option.assert_called_once_with("path", "/output/data")
+
+    def test_custom_format(self) -> None:
+        df = MagicMock()
+        sink = FileStreamingSink(
+            path="/output/data",
+            file_format="json",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("json")
+
+    def test_partition_by(self) -> None:
+        df = MagicMock()
+        sink = FileStreamingSink(
+            path="/output/data",
+            checkpoint_location="/ckpt",
+            partition_by=["year", "month"],
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_called_once_with("year", "month")
+
+    def test_no_partition_by(self) -> None:
+        df = MagicMock()
+        sink = FileStreamingSink(
+            path="/output/data", checkpoint_location="/ckpt"
+        )
+        sink.write_stream(df)
+
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_not_called()
+
+    def test_default_format_parquet(self) -> None:
+        sink = FileStreamingSink(path="/output/data", checkpoint_location="/c")
+        assert sink.file_format == "parquet"
+
+    def test_default_output_mode(self) -> None:
+        sink = FileStreamingSink(path="/output/data", checkpoint_location="/c")
+        assert sink.output_mode == OutputMode.APPEND
