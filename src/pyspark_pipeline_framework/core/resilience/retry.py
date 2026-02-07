@@ -53,9 +53,7 @@ class RetryExecutor:
         Returns:
             Delay in seconds.
         """
-        base = self._config.initial_delay_seconds * (
-            self._config.backoff_multiplier ** attempt
-        )
+        base = self._config.initial_delay_seconds * (self._config.backoff_multiplier**attempt)
         base = min(base, self._config.max_delay_seconds)
 
         if self._jitter_factor > 0:

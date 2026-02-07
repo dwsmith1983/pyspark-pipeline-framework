@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pyspark_pipeline_framework.core.quality.types import (
-    CheckResult,
-    CheckTiming,
-    DataQualityCheck,
-)
+from pyspark_pipeline_framework.core.quality.types import CheckResult, CheckTiming, DataQualityCheck
 
 if TYPE_CHECKING:
     from pyspark.sql import SparkSession

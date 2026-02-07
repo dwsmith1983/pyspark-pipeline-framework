@@ -8,10 +8,7 @@ Note: These presets are instances, not factories. If you need to
 modify a preset, create a new instance instead of mutating these.
 """
 
-from pyspark_pipeline_framework.core.config.retry import (
-    CircuitBreakerConfig,
-    RetryConfig,
-)
+from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
 
 
 class RetryPolicies:

@@ -62,9 +62,7 @@ class AuditEvent:
     def to_dict(self) -> dict[str, Any]:
         """Convert to a JSON-serializable dictionary."""
         return {
-            "action": self.action.value
-            if isinstance(self.action, AuditAction)
-            else self.action,
+            "action": self.action.value if isinstance(self.action, AuditAction) else self.action,
             "actor": self.actor,
             "resource": self.resource,
             "status": self.status.value,

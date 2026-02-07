@@ -40,8 +40,7 @@ class PipelineConfigChangedError(Exception):
         self.run_id = run_id
         self.pipeline_name = pipeline_name
         super().__init__(
-            f"Pipeline config changed since checkpoint was saved "
-            f"(run_id={run_id!r}, pipeline={pipeline_name!r})"
+            f"Pipeline config changed since checkpoint was saved " f"(run_id={run_id!r}, pipeline={pipeline_name!r})"
         )
 
 
@@ -71,10 +70,7 @@ class CheckpointState:
         if not self.pipeline_fingerprint:
             raise ValueError("pipeline_fingerprint must not be empty")
         if self.status not in _VALID_STATUSES:
-            raise ValueError(
-                f"Invalid status {self.status!r}; "
-                f"must be one of {sorted(_VALID_STATUSES)}"
-            )
+            raise ValueError(f"Invalid status {self.status!r}; " f"must be one of {sorted(_VALID_STATUSES)}")
 
 
 # ------------------------------------------------------------------
@@ -126,9 +122,7 @@ class LocalCheckpointStore:
         target.parent.mkdir(parents=True, exist_ok=True)
         data = json.dumps(asdict(state), indent=2)
         # Atomic write: write to tmp in same dir, then rename
-        fd, tmp_path_str = tempfile.mkstemp(
-            dir=str(target.parent), suffix=".tmp"
-        )
+        fd, tmp_path_str = tempfile.mkstemp(dir=str(target.parent), suffix=".tmp")
         tmp_path = Path(tmp_path_str)
         try:
             tmp_path.write_text(data)
@@ -225,23 +219,17 @@ class CheckpointHooks:
         self._state.updated_at = self._now().isoformat()
         self._store.save(self._state)
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         pass
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         if self._state is None:
             return
         self._state.completed_components.append(config.name)
         self._state.updated_at = self._now().isoformat()
         self._store.save(self._state)
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         if self._state is None:
             return
         self._state.failed_component = config.name
@@ -295,10 +283,7 @@ def load_checkpoint_for_resume(
     """
     state = store.load(run_id, config.name)
     if state is None:
-        raise ValueError(
-            f"No checkpoint found for run_id={run_id!r}, "
-            f"pipeline={config.name!r}"
-        )
+        raise ValueError(f"No checkpoint found for run_id={run_id!r}, " f"pipeline={config.name!r}")
 
     current_fingerprint = compute_pipeline_fingerprint(config)
     if state.pipeline_fingerprint != current_fingerprint:

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://pyspark-pipeline-framework.readthedocs.io/
+    about: Check the documentation for usage guides and API reference
+  - name: Discussions
+    url: https://github.com/dwsmith1983/pyspark-pipeline-framework/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: Changelog
+    url: https://github.com/dwsmith1983/pyspark-pipeline-framework/blob/main/CHANGELOG.md
+    about: See what's changed in recent versions

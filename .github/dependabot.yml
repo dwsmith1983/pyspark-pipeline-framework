@@ -1,5 +1,4 @@
 version: 2
-
 updates:
   # Python dependencies
   - package-ecosystem: "pip"
@@ -7,41 +6,41 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
     groups:
+      # Group all dev/test tools together (reduces PR noise)
       dev-dependencies:
         patterns:
           - "pytest*"
-          - "ruff"
-          - "mypy"
           - "black"
+          - "ruff"
           - "isort"
+          - "mypy"
+          - "*-stubs"
           - "pre-commit"
-          - "sphinx*"
+          - "hatch*"
           - "hypothesis"
-        update-types:
-          - "minor"
-          - "patch"
-      production-dependencies:
+      # Group doc dependencies
+      documentation:
         patterns:
-          - "pyspark"
-          - "dataconf"
-          - "structlog"
-          - "boto3"
-          - "hvac"
-        update-types:
-          - "patch"
+          - "sphinx*"
+          - "furo"
+          - "myst-parser"
+    # Ignore Spark ecosystem (manual control due to delicate compatibility matrix)
+    ignore:
+      - dependency-name: "pyspark"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "python"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
-      - "github-actions"
+      - "ci"

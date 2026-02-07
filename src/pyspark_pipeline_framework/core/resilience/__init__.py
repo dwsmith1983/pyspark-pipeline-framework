@@ -5,10 +5,7 @@ from pyspark_pipeline_framework.core.resilience.circuit_breaker import (
     CircuitBreakerOpenError,
     CircuitState,
 )
-from pyspark_pipeline_framework.core.resilience.retry import (
-    RetryExecutor,
-    with_retry,
-)
+from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor, with_retry
 
 __all__ = [
     "CircuitBreaker",

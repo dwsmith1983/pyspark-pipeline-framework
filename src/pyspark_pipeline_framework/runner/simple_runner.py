@@ -18,16 +18,9 @@ from pyspark_pipeline_framework.core.resilience.circuit_breaker import (
 )
 from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor
 from pyspark_pipeline_framework.runner.hooks import NoOpHooks, PipelineHooks
-from pyspark_pipeline_framework.runner.result import (
-    ComponentResult,
-    PipelineResult,
-    PipelineResultStatus,
-)
+from pyspark_pipeline_framework.runner.result import ComponentResult, PipelineResult, PipelineResultStatus
 from pyspark_pipeline_framework.runtime.dataflow.base import DataFlow
-from pyspark_pipeline_framework.runtime.loader import (
-    instantiate_component,
-    validate_component_class,
-)
+from pyspark_pipeline_framework.runtime.loader import instantiate_component, validate_component_class
 from pyspark_pipeline_framework.runtime.session.wrapper import SparkSessionWrapper
 
 logger = logging.getLogger(__name__)
@@ -68,9 +61,7 @@ class SimplePipelineRunner:
         self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
     @classmethod
-    def from_file(
-        cls, path: str | Path, **kwargs: Any
-    ) -> SimplePipelineRunner:
+    def from_file(cls, path: str | Path, **kwargs: Any) -> SimplePipelineRunner:
         """Create a runner from a HOCON configuration file.
 
         Args:
@@ -87,9 +78,7 @@ class SimplePipelineRunner:
     # Public API
     # ------------------------------------------------------------------
 
-    def run(
-        self, completed_components: set[str] | None = None
-    ) -> PipelineResult:
+    def run(self, completed_components: set[str] | None = None) -> PipelineResult:
         """Execute the pipeline.
 
         Args:
@@ -160,13 +149,9 @@ class SimplePipelineRunner:
         for comp_config in self._config.components:
             if comp_config.enabled:
                 try:
-                    warnings.extend(
-                        validate_component_class(comp_config.class_path)
-                    )
+                    warnings.extend(validate_component_class(comp_config.class_path))
                 except Exception as exc:
-                    warnings.append(
-                        f"Cannot load '{comp_config.class_path}': {exc}"
-                    )
+                    warnings.append(f"Cannot load '{comp_config.class_path}': {exc}")
         return warnings
 
     # ------------------------------------------------------------------
@@ -190,12 +175,8 @@ class SimplePipelineRunner:
             if cb is not None:
                 state = cb.state
                 if state is CircuitState.OPEN:
-                    remaining = cb.config.timeout_seconds - (
-                        self._clock() - cb._opened_at
-                    )
-                    raise CircuitBreakerOpenError(
-                        comp_config.name, max(remaining, 0.0)
-                    )
+                    remaining = cb.config.timeout_seconds - (self._clock() - cb._opened_at)
+                    raise CircuitBreakerOpenError(comp_config.name, max(remaining, 0.0))
 
             # Instantiate
             component = instantiate_component(comp_config)
@@ -235,9 +216,7 @@ class SimplePipelineRunner:
                 cb.record_success()
 
             duration_ms = int((self._clock() - start) * 1000)
-            self._call_hook(
-                "after_component", comp_config, index, total, duration_ms
-            )
+            self._call_hook("after_component", comp_config, index, total, duration_ms)
             return ComponentResult(
                 component_name=comp_config.name,
                 success=True,
@@ -252,9 +231,7 @@ class SimplePipelineRunner:
                 cb.record_failure()
 
             duration_ms = int((self._clock() - start) * 1000)
-            self._call_hook(
-                "on_component_failure", comp_config, index, exc
-            )
+            self._call_hook("on_component_failure", comp_config, index, exc)
             return ComponentResult(
                 component_name=comp_config.name,
                 success=False,
@@ -263,18 +240,14 @@ class SimplePipelineRunner:
                 retries=retries_used,
             )
 
-    def _get_or_create_circuit_breaker(
-        self, comp_config: ComponentConfig
-    ) -> CircuitBreaker | None:
+    def _get_or_create_circuit_breaker(self, comp_config: ComponentConfig) -> CircuitBreaker | None:
         """Return the circuit breaker for a component, or ``None``."""
         if comp_config.circuit_breaker is None:
             return None
 
         if comp_config.name not in self._circuit_breakers:
 
-            def on_state_change(
-                old: CircuitState, new: CircuitState
-            ) -> None:
+            def on_state_change(old: CircuitState, new: CircuitState) -> None:
                 self._call_hook(
                     "on_circuit_breaker_state_change",
                     comp_config.name,

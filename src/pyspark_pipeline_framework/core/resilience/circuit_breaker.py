@@ -30,10 +30,7 @@ class CircuitBreakerOpenError(Exception):
     def __init__(self, component_name: str, time_until_reset: float) -> None:
         self.component_name = component_name
         self.time_until_reset = time_until_reset
-        super().__init__(
-            f"Circuit breaker '{component_name}' is open; "
-            f"retry after {time_until_reset:.1f}s"
-        )
+        super().__init__(f"Circuit breaker '{component_name}' is open; " f"retry after {time_until_reset:.1f}s")
 
 
 class CircuitBreaker:
@@ -190,18 +187,12 @@ class CircuitBreaker:
             self._maybe_transition_to_half_open()
 
             if self._state is CircuitState.OPEN:
-                remaining = (
-                    self._config.timeout_seconds
-                    - (self._clock() - self._opened_at)
-                )
+                remaining = self._config.timeout_seconds - (self._clock() - self._opened_at)
                 raise CircuitBreakerOpenError(self._name, max(remaining, 0.0))
 
             if self._state is CircuitState.HALF_OPEN:
                 if self._half_open_calls >= self._config.half_open_max_calls:
-                    remaining = (
-                        self._config.timeout_seconds
-                        - (self._clock() - self._opened_at)
-                    )
+                    remaining = self._config.timeout_seconds - (self._clock() - self._opened_at)
                     raise CircuitBreakerOpenError(self._name, max(remaining, 0.0))
                 self._half_open_calls += 1
 

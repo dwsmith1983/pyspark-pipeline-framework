@@ -28,21 +28,15 @@ class PipelineHooks(Protocol):
         """Called after the pipeline finishes (success or failure)."""
         ...
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         """Called before each component executes."""
         ...
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         """Called after each component completes successfully."""
         ...
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         """Called when a component raises an exception."""
         ...
 
@@ -79,19 +73,13 @@ class NoOpHooks:
     def after_pipeline(self, config: PipelineConfig, result: Any) -> None:
         pass
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         pass
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         pass
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         pass
 
     def on_retry_attempt(
@@ -142,19 +130,13 @@ class CompositeHooks:
     def after_pipeline(self, config: PipelineConfig, result: Any) -> None:
         self._call_all("after_pipeline", config, result)
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         self._call_all("before_component", config, index, total)
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         self._call_all("after_component", config, index, total, duration_ms)
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         self._call_all("on_component_failure", config, index, error)
 
     def on_retry_attempt(
@@ -165,9 +147,7 @@ class CompositeHooks:
         delay_ms: int,
         error: Exception,
     ) -> None:
-        self._call_all(
-            "on_retry_attempt", config, attempt, max_attempts, delay_ms, error
-        )
+        self._call_all("on_retry_attempt", config, attempt, max_attempts, delay_ms, error)
 
     def on_circuit_breaker_state_change(
         self,

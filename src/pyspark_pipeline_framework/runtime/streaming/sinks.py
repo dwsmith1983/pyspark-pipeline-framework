@@ -5,10 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
-from pyspark_pipeline_framework.runtime.streaming.base import (
-    OutputMode,
-    StreamingSink,
-)
+from pyspark_pipeline_framework.runtime.streaming.base import OutputMode, StreamingSink
 
 if TYPE_CHECKING:
     from pyspark.sql import DataFrame
@@ -77,10 +74,7 @@ class ConsoleStreamingSink(StreamingSink):
     truncate: bool = False
 
     def write_stream(self, df: DataFrame) -> DataStreamWriter:
-        return (
-            df.writeStream.format("console")
-            .option("truncate", self.truncate)
-        )
+        return df.writeStream.format("console").option("truncate", self.truncate)
 
 
 @dataclass

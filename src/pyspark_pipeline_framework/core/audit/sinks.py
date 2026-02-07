@@ -41,17 +41,11 @@ class LoggingAuditSink(AuditSink):
         self._logger = logging.getLogger(logger_name)
 
     def emit(self, event: AuditEvent) -> None:
-        level = (
-            logging.INFO
-            if event.status == AuditStatus.SUCCESS
-            else logging.WARNING
-        )
+        level = logging.INFO if event.status == AuditStatus.SUCCESS else logging.WARNING
         self._logger.log(
             level,
             "[AUDIT] %s | %s | %s | %s",
-            event.action.value
-            if hasattr(event.action, "value")
-            else event.action,
+            event.action.value if hasattr(event.action, "value") else event.action,
             event.actor,
             event.resource,
             event.status.value,

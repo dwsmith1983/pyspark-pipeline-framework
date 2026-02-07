@@ -76,8 +76,6 @@ class SecretsProvider(ABC):
         """Resolve a single secret reference."""
         ...
 
-    def resolve_all(
-        self, references: list[SecretsReference]
-    ) -> list[SecretResolutionResult]:
+    def resolve_all(self, references: list[SecretsReference]) -> list[SecretResolutionResult]:
         """Resolve multiple secret references."""
         return [self.resolve(ref) for ref in references]

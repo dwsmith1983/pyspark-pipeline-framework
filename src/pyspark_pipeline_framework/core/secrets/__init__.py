@@ -11,10 +11,7 @@ from pyspark_pipeline_framework.core.secrets.providers import (
     EnvSecretsProvider,
     VaultSecretsProvider,
 )
-from pyspark_pipeline_framework.core.secrets.resolver import (
-    SecretsCache,
-    SecretsResolver,
-)
+from pyspark_pipeline_framework.core.secrets.resolver import SecretsCache, SecretsResolver
 
 __all__ = [
     "AwsSecretsProvider",

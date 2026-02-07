@@ -1,0 +1,84 @@
+name: Question
+description: Ask a question about using pyspark-pipeline-framework
+title: "[QUESTION] "
+labels: ["question"]
+body:
+  - type: checkboxes
+    id: pre-submission
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I checked the [documentation](https://pyspark-pipeline-framework.readthedocs.io/) and didn't find an answer
+          required: true
+        - label: I searched existing issues and discussions
+          required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: |
+        How do I...?
+        What's the best way to...?
+        Is it possible to...?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic Area
+      description: What area does your question relate to?
+      options:
+        - "Basic usage / Getting started"
+        - "Batch pipelines"
+        - "Streaming pipelines"
+        - "HOCON configuration"
+        - "Resilience (retry / circuit breaker)"
+        - "Lifecycle hooks"
+        - "Data quality checks"
+        - "Audit trail"
+        - "Secrets management"
+        - "Checkpoint / Resume"
+        - "Dynamic component loading"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish? (helps us give better answers)
+      placeholder: |
+        I'm working on a project that needs to...
+        My pipeline looks like...
+        I'm using pyspark-pipeline-framework with...
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Code Sample
+      description: If relevant, share the code you're working with
+      render: python
+      placeholder: |
+        from pyspark_pipeline_framework.runner import SimplePipelineRunner
+
+        # Your code here
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What I've Tried
+      description: What have you already attempted?
+      placeholder: |
+        - I tried X but got error Y
+        - I looked at the examples but they don't cover Z
+
+  - type: input
+    id: version
+    attributes:
+      label: pyspark-pipeline-framework Version
+      description: Optional, but helpful for version-specific questions
+      placeholder: "0.1.0"

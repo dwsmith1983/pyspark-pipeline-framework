@@ -99,9 +99,7 @@ class FileToConsolePipeline(StreamingPipeline):
     @property
     def trigger(self) -> TriggerConfig:
         """Return the trigger configuration."""
-        return TriggerConfig(
-            TriggerType.PROCESSING_TIME, self._trigger_interval
-        )
+        return TriggerConfig(TriggerType.PROCESSING_TIME, self._trigger_interval)
 
     def transform(self, df: DataFrame) -> DataFrame:
         """Apply the optional filter condition.
@@ -181,6 +179,4 @@ class KafkaToDeltaPipeline(StreamingPipeline):
     @property
     def trigger(self) -> TriggerConfig:
         """Return the trigger configuration."""
-        return TriggerConfig(
-            TriggerType.PROCESSING_TIME, self._trigger_interval
-        )
+        return TriggerConfig(TriggerType.PROCESSING_TIME, self._trigger_interval)

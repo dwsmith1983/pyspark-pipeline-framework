@@ -17,12 +17,23 @@ permissions:
 jobs:
   changes:
     name: Detect changes
+    # Skip on push to main if:
+    # 1. Release commits (chore(release):) - only update version/changelog
+    # 2. PR merge commits (contain '(#') - already tested in PR
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'workflow_dispatch' ||
+      (
+        !startsWith(github.event.head_commit.message, 'chore(release):') &&
+        !contains(github.event.head_commit.message, '(#')
+      )
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
     outputs:
       src: ${{ steps.filter.outputs.src }}
       tests: ${{ steps.filter.outputs.tests }}
+      docs: ${{ steps.filter.outputs.docs }}
       deps: ${{ steps.filter.outputs.deps }}
       workflows: ${{ steps.filter.outputs.workflows }}
     steps:
@@ -36,6 +47,10 @@ jobs:
               - 'src/**'
             tests:
               - 'tests/**'
+            docs:
+              - 'docs/**'
+              - '*.md'
+              - '.readthedocs.yaml'
             deps:
               - 'pyproject.toml'
               - 'requirements*.txt'
@@ -149,3 +164,55 @@ jobs:
           ignore-vulns: |
             GHSA-wfm5-v35h-vwf4
             GHSA-cwvm-v4w8-q58c
+
+  docs:
+    name: Build docs
+    needs: changes
+    # Run when source, docs, or dependencies change
+    if: |
+      needs.changes.outputs.src == 'true' ||
+      needs.changes.outputs.docs == 'true' ||
+      needs.changes.outputs.deps == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -e ".[docs]"
+
+      - name: Build documentation
+        run: sphinx-build -b html docs docs/_build/html -W --keep-going
+
+  # Summary job for branch protection - single required check
+  ci:
+    needs: [changes, lint, test, security, docs]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          # Get job results (skipped jobs are OK - they were intentionally filtered)
+          lint_result="${{ needs.lint.result }}"
+          test_result="${{ needs.test.result }}"
+          security_result="${{ needs.security.result }}"
+          docs_result="${{ needs.docs.result }}"
+
+          echo "Job results:"
+          echo "  lint: $lint_result"
+          echo "  test: $test_result"
+          echo "  security: $security_result"
+          echo "  docs: $docs_result"
+
+          # Check each job - 'success' or 'skipped' are acceptable
+          for result in "$lint_result" "$test_result" "$security_result" "$docs_result"; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "A job failed with result: $result"
+              exit 1
+            fi
+          done
+
+          echo "All required jobs passed or were correctly skipped"

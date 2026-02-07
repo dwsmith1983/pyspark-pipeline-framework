@@ -18,10 +18,7 @@ from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.hooks import AuditConfig, HooksConfig, LoggingConfig, MetricsConfig
 from pyspark_pipeline_framework.core.config.loader import load_from_env, load_from_file, load_from_string
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
-from pyspark_pipeline_framework.core.config.presets import (
-    CircuitBreakerConfigs,
-    RetryPolicies,
-)
+from pyspark_pipeline_framework.core.config.presets import CircuitBreakerConfigs, RetryPolicies
 from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
 from pyspark_pipeline_framework.core.config.secrets import SecretsConfig
 from pyspark_pipeline_framework.core.config.spark import SparkConfig

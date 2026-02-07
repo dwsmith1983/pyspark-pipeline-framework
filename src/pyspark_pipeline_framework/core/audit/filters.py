@@ -38,10 +38,7 @@ class ConfigFilter:
             elif isinstance(v, dict):
                 result[k] = cls.scrub(v, replacement)
             elif isinstance(v, list):
-                result[k] = [
-                    cls.scrub(item, replacement) if isinstance(item, dict) else item
-                    for item in v
-                ]
+                result[k] = [cls.scrub(item, replacement) if isinstance(item, dict) else item for item in v]
             else:
                 result[k] = v
         return result

@@ -6,9 +6,7 @@ import importlib
 import logging
 
 from pyspark_pipeline_framework.core.component.base import PipelineComponent
-from pyspark_pipeline_framework.core.component.exceptions import (
-    ComponentInstantiationError,
-)
+from pyspark_pipeline_framework.core.component.exceptions import ComponentInstantiationError
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 
 logger = logging.getLogger(__name__)
@@ -106,16 +104,12 @@ def validate_component_class(class_path: str) -> list[str]:
 
     if not (hasattr(cls, "from_config") and callable(cls.from_config)):
         warnings.append(
-            f"'{class_path}' does not implement from_config(); "
-            f"will fall back to **kwargs instantiation"
+            f"'{class_path}' does not implement from_config(); " f"will fall back to **kwargs instantiation"
         )
 
     abstract_methods: frozenset[str] = getattr(cls, "__abstractmethods__", frozenset())
     if abstract_methods:
-        warnings.append(
-            f"'{class_path}' has unimplemented abstract methods: "
-            f"{', '.join(sorted(abstract_methods))}"
-        )
+        warnings.append(f"'{class_path}' has unimplemented abstract methods: " f"{', '.join(sorted(abstract_methods))}")
 
     return warnings
 
@@ -139,11 +133,7 @@ def list_available_components(package: str) -> list[str]:
 
     results: list[str] = []
     for name, obj in vars(module).items():
-        if (
-            isinstance(obj, type)
-            and issubclass(obj, PipelineComponent)
-            and obj is not PipelineComponent
-        ):
+        if isinstance(obj, type) and issubclass(obj, PipelineComponent) and obj is not PipelineComponent:
             results.append(f"{package}.{name}")
 
     return sorted(results)

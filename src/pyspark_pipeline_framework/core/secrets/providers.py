@@ -60,16 +60,12 @@ class AwsSecretsProvider(SecretsProvider):
         if self._client is None:
             import boto3  # type: ignore[import-untyped]
 
-            self._client = boto3.client(
-                "secretsmanager", region_name=self._region
-            )
+            self._client = boto3.client("secretsmanager", region_name=self._region)
         return self._client
 
     def resolve(self, reference: SecretsReference) -> SecretResolutionResult:
         try:
-            response = self._get_client().get_secret_value(
-                SecretId=reference.key
-            )
+            response = self._get_client().get_secret_value(SecretId=reference.key)
             return SecretResolutionResult(
                 reference=reference,
                 status=SecretResolutionStatus.SUCCESS,
@@ -129,9 +125,7 @@ class VaultSecretsProvider(SecretsProvider):
             else:
                 path, field = reference.key, "value"
 
-            response = self._get_client().secrets.kv.v2.read_secret_version(
-                path=path, mount_point=self._mount_point
-            )
+            response = self._get_client().secrets.kv.v2.read_secret_version(path=path, mount_point=self._mount_point)
             data = response.get("data", {}).get("data", {})
             value = data.get(field)
 

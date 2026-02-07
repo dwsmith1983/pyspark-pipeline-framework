@@ -53,7 +53,7 @@ def load_from_env(prefix: str, config_class: type[T]) -> T:
     """Load configuration from environment variables.
 
     Args:
-        prefix: Prefix for environment variables (e.g., "PPF_")
+        prefix: Prefix for environment variables (e.g., ``PPF_``)
         config_class: The configuration dataclass type to load into
 
     Returns:

@@ -200,9 +200,7 @@ class SchemaValidator:
                 )
             )
 
-        has_errors = any(
-            i.severity is ValidationSeverity.ERROR for i in issues
-        )
+        has_errors = any(i.severity is ValidationSeverity.ERROR for i in issues)
         return ValidationResult(
             valid=not has_errors,
             issues=issues,

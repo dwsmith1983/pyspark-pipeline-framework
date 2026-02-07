@@ -47,9 +47,7 @@ class TriggerConfig:
     def __post_init__(self) -> None:
         needs_interval = {TriggerType.PROCESSING_TIME, TriggerType.CONTINUOUS}
         if self.trigger_type in needs_interval and not self.interval:
-            raise ValueError(
-                f"interval is required for {self.trigger_type.value} trigger"
-            )
+            raise ValueError(f"interval is required for {self.trigger_type.value} trigger")
 
 
 class StreamingSource(ABC):
@@ -98,8 +96,8 @@ class StreamingSink(ABC):
 class StreamingPipeline(DataFlow, ABC):
     """Combines a streaming source, optional transformation, and sink.
 
-    Subclasses must define :pyattr:`source`, :pyattr:`sink`, and
-    :pyattr:`name`.  Override :pymeth:`transform` to add logic between
+    Subclasses must define :attr:`source`, :attr:`sink`, and
+    :attr:`name`.  Override :meth:`transform` to add logic between
     read and write.
 
     Two execution modes:
@@ -156,9 +154,7 @@ class StreamingPipeline(DataFlow, ABC):
 
         writer = self.sink.write_stream(df)
         writer = writer.outputMode(self.sink.output_mode.value)
-        writer = writer.option(
-            "checkpointLocation", self.sink.checkpoint_location
-        )
+        writer = writer.option("checkpointLocation", self.sink.checkpoint_location)
 
         if self.sink.query_name:
             writer = writer.queryName(self.sink.query_name)

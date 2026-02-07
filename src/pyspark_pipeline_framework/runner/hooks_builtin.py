@@ -44,9 +44,7 @@ class LoggingHooks:
             config.version,
         )
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         self._logger.info(
             "Component '%s' [%d/%d] starting",
             config.name,
@@ -54,9 +52,7 @@ class LoggingHooks:
             total,
         )
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         self._logger.info(
             "Component '%s' [%d/%d] completed in %dms",
             config.name,
@@ -65,9 +61,7 @@ class LoggingHooks:
             duration_ms,
         )
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         self._logger.error(
             "Component '%s' [%d] failed: %s",
             config.name,
@@ -131,19 +125,13 @@ class MetricsHooks:
         elapsed = self._clock() - self._pipeline_start
         self.total_duration_ms = int(elapsed * 1000)
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         pass
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         self.component_durations[config.name] = duration_ms
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         pass
 
     def on_retry_attempt(
@@ -154,9 +142,7 @@ class MetricsHooks:
         delay_ms: int,
         error: Exception,
     ) -> None:
-        self.component_retries[config.name] = (
-            self.component_retries.get(config.name, 0) + 1
-        )
+        self.component_retries[config.name] = self.component_retries.get(config.name, 0) + 1
 
     def on_circuit_breaker_state_change(
         self,

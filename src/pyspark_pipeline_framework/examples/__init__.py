@@ -8,10 +8,7 @@ from pyspark_pipeline_framework.examples.batch import (
     WriteTable,
     WriteTableConfig,
 )
-from pyspark_pipeline_framework.examples.streaming import (
-    FileToConsolePipeline,
-    KafkaToDeltaPipeline,
-)
+from pyspark_pipeline_framework.examples.streaming import FileToConsolePipeline, KafkaToDeltaPipeline
 
 __all__ = [
     "FileToConsolePipeline",

@@ -7,12 +7,7 @@ from typing import Any
 
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
-from pyspark_pipeline_framework.core.quality.types import (
-    CheckResult,
-    CheckTiming,
-    DataQualityCheck,
-    FailureMode,
-)
+from pyspark_pipeline_framework.core.quality.types import CheckResult, CheckTiming, DataQualityCheck, FailureMode
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runtime.session.wrapper import SparkSessionWrapper
 
@@ -25,15 +20,13 @@ class DataQualityError(Exception):
     def __init__(self, check_name: str, result: CheckResult) -> None:
         self.check_name = check_name
         self.result = result
-        super().__init__(
-            f"Data quality check '{check_name}' failed: {result.message}"
-        )
+        super().__init__(f"Data quality check '{check_name}' failed: {result.message}")
 
 
 class DataQualityHooks:
     """Pipeline hooks that run data quality checks at lifecycle events.
 
-    Register checks via :pymeth:`register` or :pymeth:`register_all`,
+    Register checks via :meth:`register` or :meth:`register_all`,
     then pass this hooks instance to the runner (typically via
     ``CompositeHooks``).
 
@@ -42,7 +35,7 @@ class DataQualityHooks:
         The pipeline runner catches hook exceptions to prevent hooks from
         crashing the pipeline.  If a ``FAIL_ON_ERROR`` check fails, the
         ``DataQualityError`` is logged but the pipeline continues.
-        Inspect :pyattr:`results` after the run to detect failures
+        Inspect :attr:`results` after the run to detect failures
         programmatically.
 
     Args:
@@ -72,17 +65,12 @@ class DataQualityHooks:
     # Internal
     # ------------------------------------------------------------------
 
-    def _run_checks(
-        self, timing: CheckTiming, component_name: str | None = None
-    ) -> None:
+    def _run_checks(self, timing: CheckTiming, component_name: str | None = None) -> None:
         """Run all checks matching *timing* (and optional *component_name*)."""
         for check in self._checks:
             if check.timing != timing:
                 continue
-            if (
-                timing == CheckTiming.AFTER_COMPONENT
-                and check.component_name != component_name
-            ):
+            if timing == CheckTiming.AFTER_COMPONENT and check.component_name != component_name:
                 continue
 
             logger.info("Running DQ check: %s", check.name)
@@ -101,9 +89,7 @@ class DataQualityHooks:
             if not result.passed:
                 self._handle_failure(check, result)
 
-    def _handle_failure(
-        self, check: DataQualityCheck, result: CheckResult
-    ) -> None:
+    def _handle_failure(self, check: DataQualityCheck, result: CheckResult) -> None:
         """Handle a failed check according to its failure mode."""
         if check.failure_mode == FailureMode.WARN_ONLY:
             logger.warning(
@@ -141,19 +127,13 @@ class DataQualityHooks:
     def after_pipeline(self, config: PipelineConfig, result: Any) -> None:
         self._run_checks(CheckTiming.AFTER_PIPELINE)
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         pass
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         self._run_checks(CheckTiming.AFTER_COMPONENT, config.name)
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         pass
 
     def on_retry_attempt(

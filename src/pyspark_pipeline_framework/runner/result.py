@@ -42,8 +42,4 @@ class PipelineResult:
     @property
     def failed_components(self) -> list[tuple[str, Exception]]:
         """Return (name, error) pairs for components that failed."""
-        return [
-            (r.component_name, r.error)
-            for r in self.component_results
-            if not r.success and r.error is not None
-        ]
+        return [(r.component_name, r.error) for r in self.component_results if not r.success and r.error is not None]

@@ -8,11 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from pyspark_pipeline_framework.core.audit.sinks import AuditSink
-from pyspark_pipeline_framework.core.audit.types import (
-    AuditAction,
-    AuditEvent,
-    AuditStatus,
-)
+from pyspark_pipeline_framework.core.audit.types import AuditAction, AuditEvent, AuditStatus
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
@@ -80,11 +76,7 @@ class AuditHooks:
         )
 
     def after_pipeline(self, config: PipelineConfig, result: Any) -> None:
-        status = (
-            AuditStatus.SUCCESS
-            if result.status == PipelineResultStatus.SUCCESS
-            else AuditStatus.FAILURE
-        )
+        status = AuditStatus.SUCCESS if result.status == PipelineResultStatus.SUCCESS else AuditStatus.FAILURE
         self._emit(
             AuditAction.PIPELINE_COMPLETED,
             "SimplePipelineRunner",
@@ -96,9 +88,7 @@ class AuditHooks:
             },
         )
 
-    def before_component(
-        self, config: ComponentConfig, index: int, total: int
-    ) -> None:
+    def before_component(self, config: ComponentConfig, index: int, total: int) -> None:
         self._emit(
             AuditAction.COMPONENT_STARTED,
             config.name,
@@ -107,9 +97,7 @@ class AuditHooks:
             {"index": str(index), "total": str(total)},
         )
 
-    def after_component(
-        self, config: ComponentConfig, index: int, total: int, duration_ms: int
-    ) -> None:
+    def after_component(self, config: ComponentConfig, index: int, total: int, duration_ms: int) -> None:
         self._emit(
             AuditAction.COMPONENT_COMPLETED,
             config.name,
@@ -118,9 +106,7 @@ class AuditHooks:
             {"duration_ms": str(duration_ms)},
         )
 
-    def on_component_failure(
-        self, config: ComponentConfig, index: int, error: Exception
-    ) -> None:
+    def on_component_failure(self, config: ComponentConfig, index: int, error: Exception) -> None:
         self._emit(
             AuditAction.COMPONENT_FAILED,
             config.name,

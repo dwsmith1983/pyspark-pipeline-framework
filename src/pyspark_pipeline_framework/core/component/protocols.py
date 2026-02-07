@@ -17,7 +17,8 @@ class ConfigurableInstance(Protocol[T_co]):
     Components implementing this protocol can be dynamically loaded
     by the component loader using their class_path and config dict.
 
-    Example:
+    Example::
+
         class MyTransform(DataFlow):
             @classmethod
             def from_config(cls, config: dict[str, Any]) -> MyTransform:
