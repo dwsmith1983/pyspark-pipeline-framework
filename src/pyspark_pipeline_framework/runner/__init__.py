@@ -9,6 +9,7 @@ from pyspark_pipeline_framework.runner.checkpoint import (
     compute_pipeline_fingerprint,
     load_checkpoint_for_resume,
 )
+from pyspark_pipeline_framework.runner.audit_hooks import AuditHooks
 from pyspark_pipeline_framework.runner.hooks import (
     CompositeHooks,
     NoOpHooks,
@@ -30,6 +31,7 @@ from pyspark_pipeline_framework.runner.result import (
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
 
 __all__ = [
+    "AuditHooks",
     "CheckpointHooks",
     "CheckpointState",
     "CheckpointStore",
