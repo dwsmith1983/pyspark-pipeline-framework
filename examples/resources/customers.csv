@@ -1,0 +1,11 @@
+customer_id,name,email,region,created_at
+1,Alice Johnson,alice.johnson@example.com,us-east,2025-03-15
+2,Bob Smith,BOB.SMITH@EXAMPLE.COM,us-west,2025-06-01
+3,Charlie Brown,charlie.brown@example.com,eu-west,2025-01-20
+4,Diana Prince,,us-east,2025-04-10
+5,Edward Teach,EDWARD.TEACH@EXAMPLE.COM,eu-west,2025-07-22
+6,Fiona Apple,fiona.apple@example.com,us-west,2024-11-30
+7,George Martin,George.Martin@Example.COM,us-east,2025-09-05
+8,Hannah Lee,hannah.lee@example.com,eu-west,2025-02-14
+9,Ivan Petrov,,us-west,2025-05-18
+10,Julia Chen,JULIA.CHEN@EXAMPLE.COM,us-east,2025-08-29

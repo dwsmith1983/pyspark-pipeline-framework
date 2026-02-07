@@ -36,6 +36,139 @@ if TYPE_CHECKING:
 
 
 @dataclass
+class ReadCsvConfig:
+    """Configuration for :class:`ReadCsv`.
+
+    Args:
+        path: Path to the CSV file or directory.
+        output_view: Name for the temporary view to register.
+        header: Whether the CSV has a header row.
+        infer_schema: Whether to infer column types.
+    """
+
+    path: str
+    output_view: str
+    header: bool = True
+    infer_schema: bool = True
+
+
+class ReadCsv(DataFlow):
+    """Read a CSV file and register it as a temporary view.
+
+    Args:
+        config: Configuration specifying the file path and view name.
+
+    Example::
+
+        component = ReadCsv(ReadCsvConfig(
+            path="examples/resources/customers.csv",
+            output_view="raw_customers",
+        ))
+    """
+
+    def __init__(self, config: ReadCsvConfig) -> None:
+        super().__init__()
+        self._config = config
+
+    @property
+    def name(self) -> str:
+        """Return a descriptive component name."""
+        return f"ReadCsv({self._config.path})"
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> ReadCsv:
+        """Create a :class:`ReadCsv` from a configuration dictionary.
+
+        Args:
+            config: Dictionary with keys matching :class:`ReadCsvConfig`.
+
+        Returns:
+            Configured ``ReadCsv`` instance.
+        """
+        return cls(ReadCsvConfig(**config))
+
+    def run(self) -> None:
+        """Read the CSV file and register as a temp view."""
+        df = self.spark.read.csv(
+            self._config.path,
+            header=self._config.header,
+            inferSchema=self._config.infer_schema,
+        )
+        df.createOrReplaceTempView(self._config.output_view)
+        self.logger.info(
+            "Registered view '%s' from CSV '%s'",
+            self._config.output_view,
+            self._config.path,
+        )
+
+
+@dataclass
+class WriteCsvConfig:
+    """Configuration for :class:`WriteCsv`.
+
+    Args:
+        input_view: Name of the temporary view to read from.
+        path: Output directory path.
+        mode: Write mode (``"overwrite"``, ``"append"``, etc.).
+        header: Whether to write a header row.
+    """
+
+    input_view: str
+    path: str
+    mode: str = "overwrite"
+    header: bool = True
+
+
+class WriteCsv(DataFlow):
+    """Write a temporary view to CSV files.
+
+    Args:
+        config: Configuration specifying the source view and output path.
+
+    Example::
+
+        component = WriteCsv(WriteCsvConfig(
+            input_view="cleaned_customers",
+            path="/tmp/output/customers",
+        ))
+    """
+
+    def __init__(self, config: WriteCsvConfig) -> None:
+        super().__init__()
+        self._config = config
+
+    @property
+    def name(self) -> str:
+        """Return a descriptive component name."""
+        return f"WriteCsv({self._config.path})"
+
+    @classmethod
+    def from_config(cls, config: dict[str, Any]) -> WriteCsv:
+        """Create a :class:`WriteCsv` from a configuration dictionary.
+
+        Args:
+            config: Dictionary with keys matching :class:`WriteCsvConfig`.
+
+        Returns:
+            Configured ``WriteCsv`` instance.
+        """
+        return cls(WriteCsvConfig(**config))
+
+    def run(self) -> None:
+        """Read the temp view and write to CSV."""
+        df = self.spark.table(self._config.input_view)
+        df.write.mode(self._config.mode).csv(
+            self._config.path,
+            header=self._config.header,
+        )
+        self.logger.info(
+            "Wrote view '%s' to CSV '%s'",
+            self._config.input_view,
+            self._config.path,
+        )
+
+
+@dataclass
 class ReadTableConfig:
     """Configuration for :class:`ReadTable`.
 

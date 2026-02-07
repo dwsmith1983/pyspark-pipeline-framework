@@ -1,21 +1,15 @@
-"""End-to-end example: run the customer ETL pipeline.
+"""Local demo: run a pipeline entirely on local CSV files.
 
-Demonstrates loading a HOCON config, wiring up lifecycle hooks
-(logging, data quality, audit, checkpoint), and executing the
-pipeline with ``SimplePipelineRunner``.
+Demonstrates a complete pipeline run with sample data, lifecycle hooks,
+and result inspection — no external services required.
 
 Usage:
-    python examples/run_customer_etl.py
-
-Note:
-    This example uses the built-in ``ReadTable``, ``SqlTransform``,
-    and ``WriteTable`` components.  It requires a running Spark
-    session with the ``raw.customers`` table available.  For a
-    quick local test, see ``examples/run_local_demo.py``.
+    python examples/run_local_demo.py
 """
 
 from __future__ import annotations
 
+import shutil
 from pathlib import Path
 
 from pyspark_pipeline_framework.core.audit import LoggingAuditSink
@@ -31,16 +25,23 @@ from pyspark_pipeline_framework.runner import (
 )
 from pyspark_pipeline_framework.runner.checkpoint import LocalCheckpointStore
 
+OUTPUT_DIR = Path("/tmp/ppf-local-demo/output")
+CHECKPOINT_DIR = Path("/tmp/ppf-local-demo/checkpoints")
+
 
 def main() -> None:
-    """Load config, attach hooks, and run the pipeline."""
+    """Load config, attach hooks, run the pipeline, and show output."""
+    # Clean previous run
+    shutil.rmtree("/tmp/ppf-local-demo", ignore_errors=True)
+
     # 1. Load HOCON configuration
-    config_path = str(Path(__file__).parent / "customer_etl.conf")
+    config_path = str(Path(__file__).parent / "local_demo.conf")
     config = load_from_file(config_path, PipelineConfig)
-    print(f"Loaded pipeline: {config.name} v{config.version}")
+    print(f"Pipeline : {config.name} v{config.version}")
+    print(f"Components: {', '.join(c.name for c in config.components)}")
 
     # 2. Set up checkpoint store for resume capability
-    store = LocalCheckpointStore(Path("/tmp/ppf-checkpoints"))
+    store = LocalCheckpointStore(CHECKPOINT_DIR)
     fingerprint = compute_pipeline_fingerprint(config)
 
     # 3. Compose lifecycle hooks
@@ -48,19 +49,29 @@ def main() -> None:
         LoggingHooks(),
         MetricsHooks(),
         AuditHooks(LoggingAuditSink()),
-        CheckpointHooks(store, run_id="demo-001", pipeline_fingerprint=fingerprint),
+        CheckpointHooks(store, run_id="local-001", pipeline_fingerprint=fingerprint),
     )
 
     # 4. Build and run the pipeline
     runner = SimplePipelineRunner(config, hooks=hooks)
     result = runner.run()
 
-    # 5. Inspect results
-    print(f"\nPipeline status: {result.status}")
+    # 5. Print results
+    print(f"\nPipeline status: {result.status.value}")
     print(f"Total duration:  {result.total_duration_ms} ms")
     for comp in result.component_results:
         status = "SUCCESS" if comp.success else "FAILED"
         print(f"  {comp.component_name}: {status} ({comp.duration_ms} ms)")
+
+    # 6. Show the output data
+    if result.status.value == "success":
+        print("\n--- Output (cleaned_customers) ---")
+        from pyspark.sql import SparkSession
+
+        spark = SparkSession.builder.getOrCreate()
+        output_df = spark.read.csv(str(OUTPUT_DIR), header=True)
+        output_df.show(truncate=False)
+        spark.stop()
 
 
 if __name__ == "__main__":
