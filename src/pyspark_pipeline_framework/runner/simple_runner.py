@@ -17,6 +17,7 @@ from pyspark_pipeline_framework.core.resilience.circuit_breaker import (
     CircuitState,
 )
 from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor
+from pyspark_pipeline_framework.core.utils import safe_call
 from pyspark_pipeline_framework.runner.hooks import NoOpHooks, PipelineHooks
 from pyspark_pipeline_framework.runner.result import ComponentResult, PipelineResult, PipelineResultStatus
 from pyspark_pipeline_framework.runtime.dataflow.base import DataFlow
@@ -265,12 +266,10 @@ class SimplePipelineRunner:
 
     def _call_hook(self, method: str, *args: Any) -> None:
         """Invoke a hook method defensively — errors are logged, not raised."""
-        try:
-            getattr(self._hooks, method)(*args)
-        except Exception:
-            logger.warning(
-                "Hook %s.%s raised an exception",
-                type(self._hooks).__name__,
-                method,
-                exc_info=True,
-            )
+        safe_call(
+            lambda: getattr(self._hooks, method)(*args),
+            logger,
+            "Hook %s.%s raised an exception",
+            type(self._hooks).__name__,
+            method,
+        )

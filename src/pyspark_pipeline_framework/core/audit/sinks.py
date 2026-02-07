@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import IO, Any
 
 from pyspark_pipeline_framework.core.audit.types import AuditEvent, AuditStatus
+from pyspark_pipeline_framework.core.utils import safe_call
 
 logger = logging.getLogger(__name__)
 
@@ -98,22 +99,16 @@ class CompositeAuditSink(AuditSink):
 
     def emit(self, event: AuditEvent) -> None:
         for sink in self._sinks:
-            try:
-                sink.emit(event)
-            except Exception:
-                logger.warning(
-                    "Audit sink %s failed to emit",
-                    type(sink).__name__,
-                    exc_info=True,
-                )
+
+            def _emit(s: AuditSink = sink) -> None:
+                s.emit(event)
+
+            safe_call(_emit, logger, "Audit sink %s failed to emit", type(sink).__name__)
 
     def close(self) -> None:
         for sink in self._sinks:
-            try:
-                sink.close()
-            except Exception:
-                logger.warning(
-                    "Audit sink %s failed to close",
-                    type(sink).__name__,
-                    exc_info=True,
-                )
+
+            def _close(s: AuditSink = sink) -> None:
+                s.close()
+
+            safe_call(_close, logger, "Audit sink %s failed to close", type(sink).__name__)

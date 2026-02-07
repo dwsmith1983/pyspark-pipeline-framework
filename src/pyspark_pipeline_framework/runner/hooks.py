@@ -8,6 +8,7 @@ from typing import Any, Protocol
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
+from pyspark_pipeline_framework.core.utils import safe_call
 
 logger = logging.getLogger(__name__)
 
@@ -114,15 +115,11 @@ class CompositeHooks:
     def _call_all(self, method: str, *args: Any, **kwargs: Any) -> None:
         """Invoke *method* on every registered hook, swallowing errors."""
         for hook in self._hooks:
-            try:
-                getattr(hook, method)(*args, **kwargs)
-            except Exception:
-                logger.warning(
-                    "Hook %s.%s raised an exception",
-                    type(hook).__name__,
-                    method,
-                    exc_info=True,
-                )
+
+            def _invoke(h: PipelineHooks = hook) -> None:
+                getattr(h, method)(*args, **kwargs)
+
+            safe_call(_invoke, logger, "Hook %s.%s raised an exception", type(hook).__name__, method)
 
     def before_pipeline(self, config: PipelineConfig) -> None:
         self._call_all("before_pipeline", config)
