@@ -20,6 +20,11 @@ from pyspark_pipeline_framework.core.config.loader import load_from_env, load_fr
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
 from pyspark_pipeline_framework.core.config.presets import CircuitBreakerConfigs, RetryPolicies
 from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
+from pyspark_pipeline_framework.core.config.secret_resolver import (
+    SecretResolutionError,
+    parse_secret_reference,
+    resolve_config_secrets,
+)
 from pyspark_pipeline_framework.core.config.secrets import SecretsConfig
 from pyspark_pipeline_framework.core.config.spark import SparkConfig
 from pyspark_pipeline_framework.core.config.validator import (
@@ -49,6 +54,7 @@ __all__ = [
     "PipelineMode",
     "RetryConfig",
     "RetryPolicies",
+    "SecretResolutionError",
     "SecretsConfig",
     "SecretsProvider",
     "SparkConfig",
@@ -60,5 +66,7 @@ __all__ = [
     "load_from_env",
     "load_from_file",
     "load_from_string",
+    "parse_secret_reference",
+    "resolve_config_secrets",
     "validate_pipeline",
 ]
