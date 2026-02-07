@@ -68,6 +68,8 @@ class _FlakeyComponent(PipelineComponent):
 def _reset_flakey_state() -> None:
     """Reset class-level mutable state before each test."""
     _FlakeyComponent.failures_remaining = 0
+    _ResourceComponent.log = []
+    _FailingResourceComponent.log = []
 
 
 class _SparkComponent(DataFlow):
@@ -78,6 +80,45 @@ class _SparkComponent(DataFlow):
     def run(self) -> None:
         # Access spark to prove injection worked
         _ = self.spark
+
+
+class _ResourceComponent(PipelineComponent):
+    """Component that implements the Resource protocol."""
+
+    log: list[str] = []
+
+    @property
+    def name(self) -> str:
+        return "resource-comp"
+
+    def open(self) -> None:
+        _ResourceComponent.log.append("open")
+
+    def close(self) -> None:
+        _ResourceComponent.log.append("close")
+
+    def run(self) -> None:
+        _ResourceComponent.log.append("run")
+
+
+class _FailingResourceComponent(PipelineComponent):
+    """Resource component whose run() raises."""
+
+    log: list[str] = []
+
+    @property
+    def name(self) -> str:
+        return "failing-resource-comp"
+
+    def open(self) -> None:
+        _FailingResourceComponent.log.append("open")
+
+    def close(self) -> None:
+        _FailingResourceComponent.log.append("close")
+
+    def run(self) -> None:
+        _FailingResourceComponent.log.append("run")
+        raise RuntimeError("resource run failed")
 
 
 # ---------------------------------------------------------------------------
@@ -605,3 +646,55 @@ class TestValidateBeforeRun:
             validate_before_run=False,
         )
         assert runner._validate_before_run is False
+
+
+class TestResourceProtocol:
+    """Resource protocol lifecycle in the runner."""
+
+    def test_open_and_close_called_around_run(self) -> None:
+        comps = [
+            _make_component_config(
+                "res", f"{__name__}._ResourceComponent"
+            )
+        ]
+        result = _make_runner(comps).run()
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        assert _ResourceComponent.log == ["open", "run", "close"]
+
+    def test_close_called_on_failure(self) -> None:
+        comps = [
+            _make_component_config(
+                "res", f"{__name__}._FailingResourceComponent"
+            )
+        ]
+        result = _make_runner(comps, fail_fast=False).run()
+
+        assert not result.component_results[0].success
+        assert _FailingResourceComponent.log == ["open", "run", "close"]
+
+    def test_non_resource_component_unchanged(self) -> None:
+        comps = [
+            _make_component_config("ok", f"{__name__}._SuccessComponent")
+        ]
+        result = _make_runner(comps).run()
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        # No open/close logs — _SuccessComponent doesn't implement Resource
+        assert _ResourceComponent.log == []
+
+    def test_close_called_after_retry_exhaustion(self) -> None:
+        comps = [
+            _make_component_config(
+                "res",
+                f"{__name__}._FailingResourceComponent",
+                retry=RetryConfig(max_attempts=2, initial_delay_seconds=0.001),
+            )
+        ]
+        result = _make_runner(comps, fail_fast=False).run()
+
+        assert not result.component_results[0].success
+        # open once, run twice (initial + 1 retry), close once
+        assert _FailingResourceComponent.log[0] == "open"
+        assert _FailingResourceComponent.log[-1] == "close"
+        assert _FailingResourceComponent.log.count("run") == 2

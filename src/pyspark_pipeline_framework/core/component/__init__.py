@@ -10,7 +10,7 @@ from pyspark_pipeline_framework.core.component.exceptions import (
     ComponentExecutionError,
     ComponentInstantiationError,
 )
-from pyspark_pipeline_framework.core.component.protocols import ConfigurableInstance, SchemaContract
+from pyspark_pipeline_framework.core.component.protocols import ConfigurableInstance, Resource, SchemaContract
 
 __all__ = [
     "ComponentError",
@@ -18,5 +18,6 @@ __all__ = [
     "ComponentInstantiationError",
     "ConfigurableInstance",
     "PipelineComponent",
+    "Resource",
     "SchemaContract",
 ]

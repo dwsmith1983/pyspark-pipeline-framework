@@ -21,6 +21,7 @@ from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor
 from pyspark_pipeline_framework.core.utils import safe_call
 from pyspark_pipeline_framework.runner.hooks import NoOpHooks, PipelineHooks
 from pyspark_pipeline_framework.runner.result import ComponentResult, PipelineResult, PipelineResultStatus
+from pyspark_pipeline_framework.core.component.protocols import Resource
 from pyspark_pipeline_framework.runtime.dataflow.base import DataFlow
 from pyspark_pipeline_framework.runtime.loader import instantiate_component, validate_component_class
 from pyspark_pipeline_framework.runtime.session.wrapper import SparkSessionWrapper
@@ -205,31 +206,39 @@ class SimplePipelineRunner:
             if isinstance(component, DataFlow):
                 component.set_spark_session(self._spark_wrapper.spark)
 
-            # Execute with optional retry
-            if comp_config.retry is not None:
-                executor = RetryExecutor(
-                    comp_config.retry,
-                    jitter_factor=0.0,
-                    sleep_func=self._sleep_func,
-                )
-                attempts_before = [0]
+            # Resource lifecycle — open before run, close in finally
+            if isinstance(component, Resource):
+                component.open()
 
-                def on_retry(attempt: int, error: Exception, delay: float) -> None:
-                    attempts_before[0] = attempt
-                    delay_ms = int(delay * 1000)
-                    self._call_hook(
-                        "on_retry_attempt",
-                        comp_config,
-                        attempt,
-                        comp_config.retry.max_attempts,  # type: ignore[union-attr]
-                        delay_ms,
-                        error,
+            try:
+                # Execute with optional retry
+                if comp_config.retry is not None:
+                    executor = RetryExecutor(
+                        comp_config.retry,
+                        jitter_factor=0.0,
+                        sleep_func=self._sleep_func,
                     )
+                    attempts_before = [0]
 
-                executor.execute(component.run, on_retry=on_retry)
-                retries_used = attempts_before[0]
-            else:
-                component.run()
+                    def on_retry(attempt: int, error: Exception, delay: float) -> None:
+                        attempts_before[0] = attempt
+                        delay_ms = int(delay * 1000)
+                        self._call_hook(
+                            "on_retry_attempt",
+                            comp_config,
+                            attempt,
+                            comp_config.retry.max_attempts,  # type: ignore[union-attr]
+                            delay_ms,
+                            error,
+                        )
+
+                    executor.execute(component.run, on_retry=on_retry)
+                    retries_used = attempts_before[0]
+                else:
+                    component.run()
+            finally:
+                if isinstance(component, Resource):
+                    component.close()
 
             # Record success on CB
             if cb is not None:

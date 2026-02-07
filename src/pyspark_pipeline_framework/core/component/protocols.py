@@ -47,3 +47,36 @@ class SchemaContract(Protocol):
     def output_schema(self) -> Any | None:
         """Schema this component produces as output, or None if not declared."""
         ...
+
+
+@runtime_checkable
+class Resource(Protocol):
+    """Protocol for components that manage external resources.
+
+    Components implementing this protocol will have :meth:`open` called
+    before :meth:`~PipelineComponent.run` and :meth:`close` called
+    in a ``finally`` block afterwards, ensuring cleanup even on failure.
+
+    Use this for DB connection pools, HTTP clients, file handles, or
+    any resource that should be explicitly released after execution.
+
+    Example::
+
+        class DbLoader(DataFlow):
+            def open(self) -> None:
+                self._conn = psycopg2.connect(...)
+
+            def close(self) -> None:
+                self._conn.close()
+
+            def run(self) -> None:
+                ...  # use self._conn
+    """
+
+    def open(self) -> None:
+        """Acquire external resources before execution."""
+        ...
+
+    def close(self) -> None:
+        """Release external resources after execution."""
+        ...
