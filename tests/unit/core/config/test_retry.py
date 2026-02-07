@@ -58,6 +58,12 @@ class TestRetryConfig:
         with pytest.raises(ValueError, match=r"backoff_multiplier must be >= 1.0"):
             RetryConfig(backoff_multiplier=0.5)
 
+    def test_frozen(self) -> None:
+        """RetryConfig instances are immutable."""
+        config = RetryConfig()
+        with pytest.raises(AttributeError):
+            config.max_attempts = 10  # type: ignore[misc]
+
 
 class TestCircuitBreakerConfig:
     """Tests for CircuitBreakerConfig."""
@@ -105,3 +111,9 @@ class TestCircuitBreakerConfig:
         """Test validation for half_open_max_calls."""
         with pytest.raises(ValueError, match="half_open_max_calls must be at least 1"):
             CircuitBreakerConfig(half_open_max_calls=0)
+
+    def test_frozen(self) -> None:
+        """CircuitBreakerConfig instances are immutable."""
+        config = CircuitBreakerConfig()
+        with pytest.raises(AttributeError):
+            config.failure_threshold = 99  # type: ignore[misc]

@@ -236,6 +236,65 @@ class TestReset:
         assert cb.success_count == 0
 
 
+class TestTimeUntilReset:
+    """Tests for the time_until_reset property."""
+
+    def test_returns_zero_when_closed(self) -> None:
+        """CLOSED state has no time until reset."""
+        cb = CircuitBreaker(CircuitBreakerConfig())
+        assert cb.time_until_reset == 0.0
+
+    def test_returns_remaining_time_when_open(self) -> None:
+        """OPEN state returns seconds remaining until HALF_OPEN transition."""
+        current_time = 0.0
+
+        def clock() -> float:
+            return current_time
+
+        config = CircuitBreakerConfig(failure_threshold=1, timeout_seconds=30.0)
+        cb = CircuitBreaker(config, clock=clock)
+
+        cb.record_failure()
+        assert cb.state is CircuitState.OPEN
+
+        current_time = 10.0
+        assert cb.time_until_reset == pytest.approx(20.0)
+
+        current_time = 29.5
+        assert cb.time_until_reset == pytest.approx(0.5)
+
+    def test_returns_zero_when_timeout_exceeded(self) -> None:
+        """Returns 0.0 when timeout has already elapsed (about to transition)."""
+        current_time = 0.0
+
+        def clock() -> float:
+            return current_time
+
+        config = CircuitBreakerConfig(failure_threshold=1, timeout_seconds=10.0)
+        cb = CircuitBreaker(config, clock=clock)
+
+        cb.record_failure()
+        current_time = 15.0
+        # state property would transition to HALF_OPEN, but time_until_reset
+        # checks raw state under lock without triggering transition
+        assert cb.time_until_reset == 0.0
+
+    def test_returns_zero_when_half_open(self) -> None:
+        """HALF_OPEN state has no time until reset."""
+        current_time = 0.0
+
+        def clock() -> float:
+            return current_time
+
+        config = CircuitBreakerConfig(failure_threshold=1, timeout_seconds=5.0)
+        cb = CircuitBreaker(config, clock=clock)
+
+        cb.record_failure()
+        current_time = 5.0
+        _ = cb.state  # trigger transition to HALF_OPEN
+        assert cb.time_until_reset == 0.0
+
+
 class TestCircuitBreakerOpenError:
     """Tests for the error class itself."""
 

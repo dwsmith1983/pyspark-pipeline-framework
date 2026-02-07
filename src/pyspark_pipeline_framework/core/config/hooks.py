@@ -70,7 +70,7 @@ class AuditConfig:
 class HooksConfig:
     """Composite configuration for all lifecycle hooks."""
 
-    logging: LoggingConfig = None  # type: ignore
+    logging: LoggingConfig | None = None
     """Logging configuration"""
 
     metrics: MetricsConfig | None = None

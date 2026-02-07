@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(frozen=True)
 class RetryConfig:
     """Configuration for retry behavior.
 
@@ -37,7 +37,7 @@ class RetryConfig:
             raise ValueError("backoff_multiplier must be >= 1.0")
 
 
-@dataclass
+@dataclass(frozen=True)
 class CircuitBreakerConfig:
     """Configuration for circuit breaker pattern.
 

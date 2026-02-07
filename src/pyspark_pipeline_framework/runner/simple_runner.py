@@ -175,8 +175,7 @@ class SimplePipelineRunner:
             if cb is not None:
                 state = cb.state
                 if state is CircuitState.OPEN:
-                    remaining = cb.config.timeout_seconds - (self._clock() - cb._opened_at)
-                    raise CircuitBreakerOpenError(comp_config.name, max(remaining, 0.0))
+                    raise CircuitBreakerOpenError(comp_config.name, cb.time_until_reset)
 
             # Instantiate
             component = instantiate_component(comp_config)

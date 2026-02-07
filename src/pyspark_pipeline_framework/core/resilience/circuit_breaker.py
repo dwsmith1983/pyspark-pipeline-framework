@@ -95,6 +95,18 @@ class CircuitBreaker:
         """Return the current success count (relevant in HALF_OPEN)."""
         return self._success_count
 
+    @property
+    def time_until_reset(self) -> float:
+        """Return seconds remaining before an OPEN breaker transitions to HALF_OPEN.
+
+        Returns ``0.0`` when the breaker is not in the OPEN state.
+        """
+        with self._lock:
+            if self._state is not CircuitState.OPEN:
+                return 0.0
+            elapsed = self._clock() - self._opened_at
+            return max(0.0, self._config.timeout_seconds - elapsed)
+
     # ------------------------------------------------------------------
     # State transitions
     # ------------------------------------------------------------------
