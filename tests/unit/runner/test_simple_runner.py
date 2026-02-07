@@ -469,3 +469,39 @@ class TestComponentDurations:
 
         assert result.component_results[0].duration_ms == 100
         assert result.total_duration_ms == 500
+
+
+class TestResume:
+    """completed_components parameter skips already-done components."""
+
+    def test_skips_completed_components(self) -> None:
+        runner = _make_runner([
+            _make_component_config("a"),
+            _make_component_config("b"),
+            _make_component_config("c"),
+        ])
+        result = runner.run(completed_components={"a"})
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        names = [r.component_name for r in result.component_results]
+        assert names == ["b", "c"]
+
+    def test_none_runs_all(self) -> None:
+        runner = _make_runner([
+            _make_component_config("a"),
+            _make_component_config("b"),
+        ])
+        result = runner.run(completed_components=None)
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        assert len(result.component_results) == 2
+
+    def test_all_completed_returns_success_empty(self) -> None:
+        runner = _make_runner([
+            _make_component_config("a"),
+            _make_component_config("b"),
+        ])
+        result = runner.run(completed_components={"a", "b"})
+
+        assert result.status == PipelineResultStatus.SUCCESS
+        assert result.component_results == []

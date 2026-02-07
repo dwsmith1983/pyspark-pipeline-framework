@@ -87,8 +87,15 @@ class SimplePipelineRunner:
     # Public API
     # ------------------------------------------------------------------
 
-    def run(self) -> PipelineResult:
+    def run(
+        self, completed_components: set[str] | None = None
+    ) -> PipelineResult:
         """Execute the pipeline.
+
+        Args:
+            completed_components: Optional set of component names to skip
+                (already completed in a prior run).  Pass ``None`` to run
+                all components.
 
         Returns:
             ``PipelineResult`` with per-component outcomes and overall status.
@@ -109,6 +116,10 @@ class SimplePipelineRunner:
         had_failure = False
 
         for index, name in enumerate(enabled_order):
+            if completed_components and name in completed_components:
+                logger.debug("Skipping already-completed component '%s'", name)
+                continue
+
             comp_config = self._config.get_component(name)
             assert comp_config is not None  # guaranteed by filter above
 
