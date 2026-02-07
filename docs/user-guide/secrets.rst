@@ -117,5 +117,5 @@ Implement the ``SecretsProvider`` ABC to add new secret backends:
 See Also
 --------
 
-- :doc:`/features/audit` - Audit trail with config filtering
-- :doc:`/quickstart` - Installation options
+- :doc:`/user-guide/audit` - Audit trail with config filtering
+- :doc:`/getting-started` - Installation options

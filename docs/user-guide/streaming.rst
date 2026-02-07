@@ -158,5 +158,5 @@ Control how frequently the stream processes micro-batches:
 See Also
 --------
 
-- :doc:`/features/batch-pipelines` - Batch pipeline guide
-- :doc:`/features/hooks` - Lifecycle hooks
+- :doc:`/user-guide/components` - Component guide
+- :doc:`/user-guide/hooks` - Lifecycle hooks

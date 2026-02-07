@@ -157,5 +157,5 @@ then circuit breaker:
 See Also
 --------
 
-- :doc:`/features/hooks` - Lifecycle hooks for monitoring retries
-- :doc:`/features/checkpoint` - Resume failed pipelines
+- :doc:`/user-guide/hooks` - Lifecycle hooks for monitoring retries
+- :doc:`/user-guide/checkpoint` - Resume failed pipelines

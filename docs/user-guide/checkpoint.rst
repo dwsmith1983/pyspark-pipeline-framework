@@ -87,5 +87,5 @@ starts from the beginning:
 See Also
 --------
 
-- :doc:`/features/hooks` - Lifecycle hooks
-- :doc:`/features/resilience` - Retry and circuit breaker
+- :doc:`/user-guide/hooks` - Lifecycle hooks
+- :doc:`/user-guide/resilience` - Retry and circuit breaker

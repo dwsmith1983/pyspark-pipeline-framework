@@ -115,5 +115,5 @@ protocol:
 See Also
 --------
 
-- :doc:`/features/hooks` - Lifecycle hooks
-- :doc:`/features/audit` - Audit trail
+- :doc:`/user-guide/hooks` - Lifecycle hooks
+- :doc:`/user-guide/audit` - Audit trail

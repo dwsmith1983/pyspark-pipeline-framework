@@ -85,6 +85,6 @@ events:
 See Also
 --------
 
-- :doc:`/features/hooks` - Lifecycle hooks
-- :doc:`/features/data-quality` - Data quality checks
-- :doc:`/features/secrets` - Secrets management
+- :doc:`/user-guide/hooks` - Lifecycle hooks
+- :doc:`/user-guide/data-quality` - Data quality checks
+- :doc:`/user-guide/secrets` - Secrets management

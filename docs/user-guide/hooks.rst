@@ -129,6 +129,6 @@ provided:
 See Also
 --------
 
-- :doc:`/features/data-quality` - Data quality checks
-- :doc:`/features/audit` - Audit trail
-- :doc:`/features/checkpoint` - Checkpoint and resume
+- :doc:`/user-guide/data-quality` - Data quality checks
+- :doc:`/user-guide/audit` - Audit trail
+- :doc:`/user-guide/checkpoint` - Checkpoint and resume

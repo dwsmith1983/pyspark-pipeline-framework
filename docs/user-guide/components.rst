@@ -1,15 +1,29 @@
-Batch Pipelines
-===============
+Components
+==========
 
-pyspark-pipeline-framework provides a component-based model for building batch
-ETL pipelines. Each pipeline is a sequence of components wired together through
+pyspark-pipeline-framework uses a component-based model for building
+pipelines. Each pipeline is a sequence of components wired together through
 HOCON configuration and executed by ``SimplePipelineRunner``.
 
-Pipeline Components
--------------------
+Component Architecture
+----------------------
 
-Components extend ``DataFlow`` and implement ``name`` and ``run()``. The
-framework injects a ``SparkSession`` before execution:
+All components descend from ``PipelineComponent``, which defines two
+requirements: a ``name`` property and a ``run()`` method. For Spark-aware
+components, extend ``DataFlow`` which adds SparkSession injection and a
+logger:
+
+.. code-block:: text
+
+   PipelineComponent (ABC)       <-- core/, no Spark dependency
+     └── DataFlow (ABC)          <-- runtime/, injects SparkSession
+           └── SchemaAwareDataFlow  <-- adds input/output schema
+
+Creating a Component
+--------------------
+
+Step 1: Extend ``DataFlow``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
@@ -32,6 +46,55 @@ framework injects a ``SparkSession`` before execution:
        def run(self) -> None:
            df = self.spark.sql("SELECT id, UPPER(name) AS name FROM raw")
            df.createOrReplaceTempView(self._output_view)
+
+Step 2: Implement ``from_config``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``from_config`` classmethod enables the framework to instantiate your
+component from HOCON configuration. Any class implementing
+``ConfigurableInstance`` can be loaded dynamically:
+
+.. code-block:: python
+
+   @classmethod
+   def from_config(cls, config: dict) -> "MyTransform":
+       return cls(output_view=config["output_view"])
+
+Step 3: Configure in HOCON
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: javascript
+
+   {
+     name: "transform"
+     component_type: transformation
+     class_path: "my.module.MyTransform"
+     config {
+       output_view: "cleaned"
+     }
+   }
+
+SparkSession Access
+-------------------
+
+The framework injects a ``SparkSession`` via ``set_spark_session()`` before
+calling ``run()``. Access it through ``self.spark``:
+
+.. code-block:: python
+
+   def run(self) -> None:
+       df = self.spark.read.table("raw.events")
+       df.createOrReplaceTempView("events")
+
+Logging
+-------
+
+``DataFlow`` provides a logger via ``self.logger``:
+
+.. code-block:: python
+
+   def run(self) -> None:
+       self.logger.info("Processing %d rows", self.spark.table("raw").count())
 
 Built-in Example Components
 ----------------------------
@@ -177,13 +240,50 @@ Extend ``SchemaAwareDataFlow`` when you need input/output schema validation:
            ])
 
        def run(self) -> None:
-           # Schema is validated before and after run()
            df = self.spark.sql("SELECT id, UPPER(name) AS name FROM raw")
            df.createOrReplaceTempView("validated")
+
+Error Handling
+--------------
+
+Components that fail raise ``ComponentExecutionError``. The runner catches
+these and delegates to the configured resilience policy (retry, circuit
+breaker) and hooks:
+
+.. code-block:: python
+
+   from pyspark_pipeline_framework.core.component.exceptions import (
+       ComponentExecutionError,
+       ComponentInstantiationError,
+   )
+
+Testing Components
+------------------
+
+Use ``MagicMock`` for the ``SparkSession``:
+
+.. code-block:: python
+
+   from unittest.mock import MagicMock
+
+
+   def test_my_transform():
+       spark = MagicMock()
+       df = MagicMock()
+       spark.sql.return_value = df
+
+       comp = MyTransform(output_view="result")
+       comp.set_spark_session(spark)
+       comp.run()
+
+       spark.sql.assert_called_once()
+       df.createOrReplaceTempView.assert_called_once_with("result")
 
 See Also
 --------
 
-- :doc:`/features/streaming-pipelines` - Streaming pipeline guide
-- :doc:`/features/hooks` - Lifecycle hooks for logging and metrics
-- :doc:`/features/resilience` - Retry and circuit breaker configuration
+- :doc:`/user-guide/configuration` -- HOCON configuration reference
+- :doc:`/user-guide/streaming` -- Streaming pipeline guide
+- :doc:`/user-guide/hooks` -- Lifecycle hooks for logging and metrics
+- :doc:`/user-guide/resilience` -- Retry and circuit breaker configuration
+- :doc:`/user-guide/schema-contracts` -- Schema validation

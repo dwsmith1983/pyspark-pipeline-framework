@@ -6,7 +6,7 @@ import sys
 sys.path.insert(0, os.path.abspath("../src"))
 
 project = "pyspark-pipeline-framework"
-copyright = "2026, Dustin Smith"
+copyright = "2025, Dustin Smith"
 author = "Dustin Smith"
 version = "0.1.0"
 release = "0.1.0"
@@ -16,7 +16,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
-    "sphinx_copybutton",  # Copy button for code blocks
+    "myst_parser",
+    "sphinx_copybutton",
 ]
 
 templates_path = ["_templates"]
@@ -27,7 +28,7 @@ html_theme = "furo"
 
 html_theme_options = {
     "light_css_variables": {
-        "color-brand-primary": "#2962ff",  # Blue accent
+        "color-brand-primary": "#2962ff",
         "color-brand-content": "#2962ff",
     },
     "dark_css_variables": {
@@ -39,15 +40,24 @@ html_theme_options = {
 }
 
 html_title = "PySpark Pipeline Framework"
+html_static_path = ["_static"]
 
 # -- Autodoc configuration ---------------------------------------------------
 autodoc_default_options = {
     "members": True,
-    "undoc-members": True,
+    "undoc-members": False,
     "show-inheritance": True,
 }
 autodoc_member_order = "bysource"
 autodoc_typehints = "description"
+autodoc_mock_imports = [
+    "pyspark",
+    "boto3",
+    "botocore",
+    "hvac",
+    "prometheus_client",
+    "opentelemetry",
+]
 
 # -- Napoleon configuration --------------------------------------------------
 napoleon_google_docstring = True
@@ -57,6 +67,12 @@ napoleon_include_init_with_doc = True
 # -- Intersphinx configuration -----------------------------------------------
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+}
+
+# -- MyST configuration ------------------------------------------------------
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
 }
 
 # -- Copy button configuration -----------------------------------------------

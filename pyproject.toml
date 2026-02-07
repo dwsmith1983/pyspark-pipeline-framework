@@ -39,7 +39,6 @@ dev = [
     "pyspark-pipeline-framework[all]",
     "pytest>=7.4",
     "pytest-cov>=4.0",
-    "hypothesis>=6.0",
     "mypy>=1.5",
     "ruff>=0.1",
     "black>=23.0",
@@ -52,7 +51,6 @@ dev = [
 test = [
     "pytest>=7.4",
     "pytest-cov>=4.0",
-    "hypothesis>=6.0",
 ]
 docs = [
     "pyspark>=3.4,<5.0",
