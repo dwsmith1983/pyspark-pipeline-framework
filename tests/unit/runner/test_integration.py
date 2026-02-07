@@ -10,6 +10,8 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import MagicMock
 
+import pytest
+
 from pyspark_pipeline_framework.core.component.base import PipelineComponent
 from pyspark_pipeline_framework.core.config.base import ComponentType
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
@@ -34,10 +36,17 @@ from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
 
 
 # ---------------------------------------------------------------------------
-# Test components
+# Shared mutable state — isolated per-test by the autouse fixture below.
 # ---------------------------------------------------------------------------
 
 _EXECUTION_LOG: list[str] = []
+
+
+@pytest.fixture(autouse=True)
+def _reset_global_state() -> None:
+    """Clear shared mutable state before each test."""
+    _EXECUTION_LOG.clear()
+    _FlakeCounter.remaining = 0
 
 
 class _ExtractComponent(PipelineComponent):
@@ -140,7 +149,7 @@ class TestFullPipelineETL:
     """Multi-component ETL pipeline with dependencies runs in order."""
 
     def test_three_stage_etl(self) -> None:
-        _EXECUTION_LOG.clear()
+
         comps = [
             _comp("load", "_LoadComponent", depends_on=["transform"]),
             _comp("extract", "_ExtractComponent"),
@@ -159,7 +168,7 @@ class TestHooksComposition:
     """Logging, metrics, and DQ hooks all fire during a single run."""
 
     def test_composite_hooks_all_fire(self) -> None:
-        _EXECUTION_LOG.clear()
+
         registry = InMemoryRegistry()
         wrapper = MagicMock()
         wrapper.spark = MagicMock()
@@ -205,7 +214,7 @@ class TestRetryWithMetrics:
     """Retry + metrics hooks record retry counts."""
 
     def test_retry_recorded_in_metrics(self) -> None:
-        _EXECUTION_LOG.clear()
+
         _FlakeCounter.remaining = 2
         registry = InMemoryRegistry()
         metrics = MetricsHooks(registry=registry)
@@ -234,7 +243,7 @@ class TestCircuitBreakerIntegration:
     """Circuit breaker opens after repeated failures, blocking further runs."""
 
     def test_cb_opens_and_blocks(self) -> None:
-        _EXECUTION_LOG.clear()
+
         _FlakeCounter.remaining = 100  # always fail
 
         comps = [
@@ -261,7 +270,7 @@ class TestCheckpointResume:
     """Resume skips already-completed components."""
 
     def test_resume_from_checkpoint(self) -> None:
-        _EXECUTION_LOG.clear()
+
         comps = [
             _comp("extract", "_ExtractComponent"),
             _comp("transform", "_TransformComponent", depends_on=["extract"]),
@@ -284,7 +293,7 @@ class TestFailFastPartialSuccess:
     """Partial success with fail_fast=True stops early."""
 
     def test_mixed_results(self) -> None:
-        _EXECUTION_LOG.clear()
+
         _FlakeCounter.remaining = 100  # always fail
 
         comps = [
@@ -306,7 +315,7 @@ class TestTimingIntegration:
     """Clock injection measures durations across the full pipeline."""
 
     def test_durations_recorded(self) -> None:
-        _EXECUTION_LOG.clear()
+
         # pipeline_start=0.0, comp_start=0.0, comp_end=0.1, pipeline_end=0.5
         ticks = iter([0.0, 0.0, 0.1, 0.5])
         comps = [_comp("extract", "_ExtractComponent")]
@@ -322,7 +331,7 @@ class TestDQFailureBlocksPipeline:
     """A FAIL_ON_ERROR DQ check failure is captured in results."""
 
     def test_dq_failure_captured(self) -> None:
-        _EXECUTION_LOG.clear()
+
         wrapper = MagicMock()
         wrapper.spark = MagicMock()
 

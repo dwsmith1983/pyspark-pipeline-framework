@@ -64,6 +64,12 @@ class _FlakeyComponent(PipelineComponent):
             raise RuntimeError("transient failure")
 
 
+@pytest.fixture(autouse=True)
+def _reset_flakey_state() -> None:
+    """Reset class-level mutable state before each test."""
+    _FlakeyComponent.failures_remaining = 0
+
+
 class _SparkComponent(DataFlow):
     @property
     def name(self) -> str:
