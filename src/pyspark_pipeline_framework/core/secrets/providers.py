@@ -58,7 +58,7 @@ class AwsSecretsProvider(SecretsProvider):
 
     def _get_client(self) -> Any:
         if self._client is None:
-            import boto3  # type: ignore[import-untyped]
+            import boto3
 
             self._client = boto3.client("secretsmanager", region_name=self._region)
         return self._client
@@ -113,7 +113,7 @@ class VaultSecretsProvider(SecretsProvider):
 
     def _get_client(self) -> Any:
         if self._client is None:
-            import hvac  # type: ignore[import-untyped]
+            import hvac
 
             self._client = hvac.Client(url=self._url, token=self._token)
         return self._client

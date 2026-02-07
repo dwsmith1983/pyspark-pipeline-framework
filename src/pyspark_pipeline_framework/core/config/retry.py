@@ -66,3 +66,27 @@ class CircuitBreakerConfig:
             raise ValueError("timeout_seconds must be positive")
         if self.half_open_max_calls < 1:
             raise ValueError("half_open_max_calls must be at least 1")
+
+
+@dataclass(frozen=True)
+class ResiliencePolicy:
+    """Bundled retry and circuit breaker configuration.
+
+    Combines both resilience strategies into a single policy that can
+    be assigned to a component.  Use :class:`ResiliencePolicies` in
+    ``core.config.presets`` for common pre-built combinations.
+
+    Example::
+
+        policy = ResiliencePolicy(
+            retry=RetryConfig(max_attempts=5),
+            circuit_breaker=CircuitBreakerConfig(failure_threshold=3),
+        )
+        comp = ComponentConfig(..., resilience=policy)
+    """
+
+    retry: RetryConfig | None = None
+    """Retry configuration (optional)."""
+
+    circuit_breaker: CircuitBreakerConfig | None = None
+    """Circuit breaker configuration (optional)."""

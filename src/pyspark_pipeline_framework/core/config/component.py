@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from pyspark_pipeline_framework.core.config.base import ComponentType
-from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
+from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, ResiliencePolicy, RetryConfig
 
 
 @dataclass
@@ -35,6 +35,13 @@ class ComponentConfig:
     circuit_breaker: CircuitBreakerConfig | None = None
     """Circuit breaker configuration for this component (optional)"""
 
+    resilience: ResiliencePolicy | None = None
+    """Bundled resilience policy (optional).
+
+    Mutually exclusive with individual ``retry`` / ``circuit_breaker``
+    fields.  When set, populates both from the policy.
+    """
+
     enabled: bool = True
     """Whether this component is enabled (default: True)"""
 
@@ -49,3 +56,13 @@ class ComponentConfig:
         # Validate no circular dependencies at the component level
         if self.name in self.depends_on:
             raise ValueError(f"Component '{self.name}' cannot depend on itself")
+
+        # Resilience policy expansion
+        if self.resilience is not None:
+            if self.retry is not None or self.circuit_breaker is not None:
+                raise ValueError(
+                    "Cannot set both 'resilience' and individual "
+                    "'retry'/'circuit_breaker' fields"
+                )
+            self.retry = self.resilience.retry
+            self.circuit_breaker = self.resilience.circuit_breaker

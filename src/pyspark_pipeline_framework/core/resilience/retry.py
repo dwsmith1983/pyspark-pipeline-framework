@@ -165,6 +165,6 @@ def with_retry(
         def wrapper(*args: object, **kwargs: object) -> T:
             return executor.execute(lambda: func(*args, **kwargs))
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper
 
     return decorator

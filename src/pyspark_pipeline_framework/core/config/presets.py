@@ -8,7 +8,7 @@ Note: These presets are instances, not factories. If you need to
 modify a preset, create a new instance instead of mutating these.
 """
 
-from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
+from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, ResiliencePolicy, RetryConfig
 
 
 class RetryPolicies:
@@ -65,4 +65,45 @@ class CircuitBreakerConfigs:
     RESILIENT: CircuitBreakerConfig = CircuitBreakerConfig(
         failure_threshold=10,
         timeout_seconds=30.0,
+    )
+
+
+class ResiliencePolicies:
+    """Pre-built resilience policies bundling retry and circuit breaker.
+
+    Example:
+        >>> from pyspark_pipeline_framework.core.config import ResiliencePolicies
+        >>> policy = ResiliencePolicies.DEFAULT
+        >>> print(policy.retry.max_attempts)  # 3
+    """
+
+    # No resilience — no retry, no circuit breaker.
+    NONE: ResiliencePolicy = ResiliencePolicy()
+
+    # Default: standard retry + standard circuit breaker.
+    DEFAULT: ResiliencePolicy = ResiliencePolicy(
+        retry=RetryPolicies.DEFAULT,
+        circuit_breaker=CircuitBreakerConfigs.DEFAULT,
+    )
+
+    # Aggressive retry with sensitive circuit breaker.
+    AGGRESSIVE: ResiliencePolicy = ResiliencePolicy(
+        retry=RetryPolicies.AGGRESSIVE,
+        circuit_breaker=CircuitBreakerConfigs.SENSITIVE,
+    )
+
+    # Conservative retry with resilient circuit breaker.
+    CONSERVATIVE: ResiliencePolicy = ResiliencePolicy(
+        retry=RetryPolicies.CONSERVATIVE,
+        circuit_breaker=CircuitBreakerConfigs.RESILIENT,
+    )
+
+    # Retry only — no circuit breaker.
+    RETRY_ONLY: ResiliencePolicy = ResiliencePolicy(
+        retry=RetryPolicies.DEFAULT,
+    )
+
+    # Circuit breaker only — no retry.
+    CIRCUIT_BREAKER_ONLY: ResiliencePolicy = ResiliencePolicy(
+        circuit_breaker=CircuitBreakerConfigs.DEFAULT,
     )

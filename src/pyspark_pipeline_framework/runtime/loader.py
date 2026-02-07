@@ -57,7 +57,7 @@ def load_component_class(class_path: str) -> type[PipelineComponent]:
             TypeError(f"'{class_name}' is not a PipelineComponent subclass"),
         )
 
-    return cls  # type: ignore[return-value]
+    return cls
 
 
 def instantiate_component(config: ComponentConfig) -> PipelineComponent:
@@ -79,7 +79,7 @@ def instantiate_component(config: ComponentConfig) -> PipelineComponent:
 
     try:
         if hasattr(cls, "from_config") and callable(cls.from_config):
-            instance: PipelineComponent = cls.from_config(config.config)  # type: ignore[attr-defined]
+            instance: PipelineComponent = cls.from_config(config.config)
             return instance
         return cls(**config.config)
     except Exception as exc:
