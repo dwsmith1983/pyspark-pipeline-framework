@@ -1,7 +1,21 @@
 # pyspark-pipeline-framework
 
+[![CI](https://github.com/dwsmith1983/pyspark-pipeline-framework/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/dwsmith1983/pyspark-pipeline-framework/actions/workflows/ci.yml)
+[![Documentation Status](https://readthedocs.org/projects/pyspark-pipeline-framework/badge/?version=latest)](https://pyspark-pipeline-framework.readthedocs.io/en/latest/)
+[![PyPI version](https://img.shields.io/pypi/v/pyspark-pipeline-framework)](https://pypi.org/project/pyspark-pipeline-framework/)
+[![Production Ready](https://img.shields.io/badge/status-production--ready-brightgreen)](https://github.com/dwsmith1983/pyspark-pipeline-framework)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
 Configuration-driven PySpark pipeline framework with HOCON configuration,
 resilience patterns, lifecycle hooks, and streaming support.
+
+> **Scala/JVM users** may also be interested in
+> [spark-pipeline-framework](https://github.com/dwsmith1983/spark-pipeline-framework),
+> the Scala implementation of this framework using PureConfig and Typesafe Config.
+> You can find it on [GitHub](https://github.com/dwsmith1983/spark-pipeline-framework)
+> and [Maven Central](https://central.sonatype.com/namespace/io.github.dwsmith1983).
 
 ## Installation
 
@@ -12,7 +26,7 @@ pip install pyspark-pipeline-framework
 For development:
 
 ```bash
-git clone https://github.com/your-org/pyspark-pipeline-framework.git
+git clone https://github.com/dwsmith1983/pyspark-pipeline-framework.git
 cd pyspark-pipeline-framework
 pip install -e ".[dev]"
 ```
