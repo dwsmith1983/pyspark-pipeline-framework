@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -16,7 +16,6 @@ from pyspark_pipeline_framework.core.config.retry import (
     RetryConfig,
 )
 from pyspark_pipeline_framework.core.config.spark import SparkConfig
-from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runner.hooks import NoOpHooks
 from pyspark_pipeline_framework.runner.result import (
     PipelineResultStatus,
@@ -24,7 +23,6 @@ from pyspark_pipeline_framework.runner.result import (
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
 from pyspark_pipeline_framework.runtime.dataflow.base import DataFlow
 from tests.factories import make_mock_spark_wrapper
-
 
 # ---------------------------------------------------------------------------
 # Test helper components
@@ -85,7 +83,7 @@ class _SparkComponent(DataFlow):
 class _ResourceComponent(PipelineComponent):
     """Component that implements the Resource protocol."""
 
-    log: list[str] = []
+    log: ClassVar[list[str]] = []
 
     @property
     def name(self) -> str:
@@ -104,7 +102,7 @@ class _ResourceComponent(PipelineComponent):
 class _FailingResourceComponent(PipelineComponent):
     """Resource component whose run() raises."""
 
-    log: list[str] = []
+    log: ClassVar[list[str]] = []
 
     @property
     def name(self) -> str:
@@ -497,20 +495,20 @@ class TestFromFile:
 
     def test_from_file(self, tmp_path: Any) -> None:
         hocon = tmp_path / "pipeline.conf"
-        hocon.write_text("""\
-{
+        hocon.write_text(f"""\
+{{
   name = "file-pipeline"
   version = "2.0.0"
-  spark { app_name = "test" }
+  spark {{ app_name = "test" }}
   components = [
-    {
+    {{
       name = "a"
       component_type = "transformation"
-      class_path = "%s._SuccessComponent"
-    }
+      class_path = "{__name__}._SuccessComponent"
+    }}
   ]
-}
-""" % __name__)
+}}
+""")
 
         runner = SimplePipelineRunner.from_file(
             hocon, spark_wrapper=make_mock_spark_wrapper(), sleep_func=lambda _: None
@@ -624,20 +622,20 @@ class TestValidateBeforeRun:
 
     def test_from_file_passes_validate_before_run(self, tmp_path: Any) -> None:
         hocon = tmp_path / "pipeline.conf"
-        hocon.write_text("""\
-{
+        hocon.write_text(f"""\
+{{
   name = "file-pipeline"
   version = "2.0.0"
-  spark { app_name = "test" }
+  spark {{ app_name = "test" }}
   components = [
-    {
+    {{
       name = "a"
       component_type = "transformation"
-      class_path = "%s._SuccessComponent"
-    }
+      class_path = "{__name__}._SuccessComponent"
+    }}
   ]
-}
-""" % __name__)
+}}
+""")
 
         runner = SimplePipelineRunner.from_file(
             hocon,

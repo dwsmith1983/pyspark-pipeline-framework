@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -14,7 +14,6 @@ from pyspark_pipeline_framework.runtime.streaming.base import (
     TriggerConfig,
     TriggerType,
 )
-
 
 # ---------------------------------------------------------------------------
 # Concrete test doubles

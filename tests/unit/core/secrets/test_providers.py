@@ -16,7 +16,6 @@ from pyspark_pipeline_framework.core.secrets.providers import (
     VaultSecretsProvider,
 )
 
-
 # ---------------------------------------------------------------------------
 # EnvSecretsProvider
 # ---------------------------------------------------------------------------

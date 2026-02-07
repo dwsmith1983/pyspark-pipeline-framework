@@ -34,7 +34,6 @@ from pyspark_pipeline_framework.runner.quality_hooks import DataQualityHooks
 from pyspark_pipeline_framework.runner.result import PipelineResultStatus
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
 
-
 # ---------------------------------------------------------------------------
 # Shared mutable state — isolated per-test by the autouse fixture below.
 # ---------------------------------------------------------------------------

@@ -18,7 +18,6 @@ from pyspark_pipeline_framework.runtime.streaming.sinks import (
     KafkaStreamingSink,
 )
 
-
 # ===================================================================
 # TestKafkaStreamingSink
 # ===================================================================

@@ -3,14 +3,12 @@
 from __future__ import annotations
 
 import random
-from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from pyspark_pipeline_framework.core.config.retry import RetryConfig
 from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor, with_retry
-
 
 # ---------------------------------------------------------------------------
 # Parameterized: exponential backoff delay table
@@ -119,7 +117,7 @@ class TestIsRetryable:
 
         assert executor.is_retryable(ValueError("oops"))
         assert executor.is_retryable(RuntimeError("fail"))
-        assert executor.is_retryable(IOError("io"))
+        assert executor.is_retryable(OSError("io"))
 
     def test_specific_simple_name(self) -> None:
         """Simple name (no dot) matches class __name__."""

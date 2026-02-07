@@ -12,7 +12,6 @@ from pyspark_pipeline_framework.runner.audit_hooks import AuditHooks
 from pyspark_pipeline_framework.runner.result import PipelineResult, PipelineResultStatus
 from tests.factories import make_component_config, make_pipeline_config
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

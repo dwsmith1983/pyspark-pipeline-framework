@@ -185,7 +185,7 @@ class TestCustomSqlCheck:
     def test_custom_message(self, spark: SparkSession) -> None:
         check = custom_sql_check(
             name="with_msg",
-            sql=f"SELECT true AS passed, 'all good' AS message",
+            sql="SELECT true AS passed, 'all good' AS message",
         )
         result = check.check_fn(spark)
         assert result.passed

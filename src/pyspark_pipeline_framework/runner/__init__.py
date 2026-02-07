@@ -10,6 +10,7 @@ from pyspark_pipeline_framework.runner.checkpoint import (
     compute_pipeline_fingerprint,
     load_checkpoint_for_resume,
 )
+from pyspark_pipeline_framework.runner.component_executor import ComponentExecutor
 from pyspark_pipeline_framework.runner.hooks import CompositeHooks, NoOpHooks, PipelineHooks
 from pyspark_pipeline_framework.runner.hooks_builtin import LoggingHooks, MetricsHooks
 from pyspark_pipeline_framework.runner.quality_hooks import DataQualityError, DataQualityHooks
@@ -21,6 +22,7 @@ __all__ = [
     "CheckpointHooks",
     "CheckpointState",
     "CheckpointStore",
+    "ComponentExecutor",
     "ComponentResult",
     "CompositeHooks",
     "DataQualityError",

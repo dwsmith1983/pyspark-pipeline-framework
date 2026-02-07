@@ -6,6 +6,7 @@ secret parsing, and topological sort.
 
 from __future__ import annotations
 
+import math
 import string
 
 import pytest
@@ -34,7 +35,6 @@ from pyspark_pipeline_framework.core.schema.definition import (
     SchemaField,
 )
 from pyspark_pipeline_framework.core.schema.validator import SchemaValidator
-
 
 # ---------------------------------------------------------------------------
 # Strategies
@@ -91,13 +91,13 @@ class TestRetryConfigProperties:
 
     @given(initial=st.floats(max_value=0.0))
     def test_non_positive_delay_always_raises(self, initial: float) -> None:
-        assume(not (initial != initial))  # filter NaN
+        assume(not math.isnan(initial))
         with pytest.raises(ValueError, match="initial_delay_seconds"):
             RetryConfig(initial_delay_seconds=initial)
 
     @given(multiplier=st.floats(max_value=0.99))
     def test_low_multiplier_always_raises(self, multiplier: float) -> None:
-        assume(not (multiplier != multiplier))  # filter NaN
+        assume(not math.isnan(multiplier))
         with pytest.raises(ValueError, match="backoff_multiplier"):
             RetryConfig(backoff_multiplier=multiplier)
 
@@ -121,7 +121,7 @@ class TestCircuitBreakerConfigProperties:
 
     @given(timeout=st.floats(max_value=0.0))
     def test_non_positive_timeout_raises(self, timeout: float) -> None:
-        assume(not (timeout != timeout))  # filter NaN
+        assume(not math.isnan(timeout))
         with pytest.raises(ValueError, match="timeout_seconds"):
             CircuitBreakerConfig(timeout_seconds=timeout)
 

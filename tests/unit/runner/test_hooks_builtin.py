@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.core.metrics.registry import InMemoryRegistry
@@ -12,7 +11,7 @@ from pyspark_pipeline_framework.runner.hooks_builtin import (
     LoggingHooks,
     MetricsHooks,
 )
-from tests.factories import make_component_config, make_pipeline_config
+from tests.factories import make_component_config
 
 
 def make_pipeline_config() -> MagicMock:

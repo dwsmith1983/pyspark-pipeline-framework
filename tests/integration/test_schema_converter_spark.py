@@ -5,13 +5,9 @@ from __future__ import annotations
 import pytest
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
-    BooleanType,
     DoubleType,
     IntegerType,
-    LongType,
     StringType,
-    StructField,
-    StructType,
 )
 
 from pyspark_pipeline_framework.core.schema.definition import (

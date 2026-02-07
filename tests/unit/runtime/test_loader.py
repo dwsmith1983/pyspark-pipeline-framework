@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import types
 from typing import Any
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -20,7 +18,6 @@ from pyspark_pipeline_framework.runtime.loader import (
     load_component_class,
     validate_component_class,
 )
-
 
 # ── Helpers ──────────────────────────────────────────────────────────
 

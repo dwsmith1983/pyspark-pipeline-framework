@@ -211,7 +211,7 @@ class TestRoundTrip:
         restored = from_struct_type(struct, description="test schema")
 
         assert len(restored.fields) == len(original.fields)
-        for orig, rest in zip(original.fields, restored.fields):
+        for orig, rest in zip(original.fields, restored.fields, strict=True):
             assert orig.name == rest.name
             assert orig.data_type == rest.data_type
             assert orig.nullable == rest.nullable

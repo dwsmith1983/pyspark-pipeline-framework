@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call
+from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.core.audit.sinks import AuditSink
 from pyspark_pipeline_framework.core.audit.types import AuditAction, AuditEvent, AuditStatus
@@ -13,7 +13,6 @@ from pyspark_pipeline_framework.core.secrets.base import (
     SecretsReference,
 )
 from pyspark_pipeline_framework.core.secrets.resolver import SecretsResolver
-
 
 # ---------------------------------------------------------------------------
 # Helpers

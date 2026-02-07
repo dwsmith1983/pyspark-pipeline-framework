@@ -18,7 +18,6 @@ from pyspark_pipeline_framework.core.secrets.base import (
 )
 from pyspark_pipeline_framework.core.secrets.resolver import SecretsResolver
 
-
 # ---------------------------------------------------------------------------
 # parse_secret_reference
 # ---------------------------------------------------------------------------

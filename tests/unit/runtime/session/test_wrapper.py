@@ -146,9 +146,8 @@ class TestSparkSessionWrapper:
     def test_context_manager_does_not_suppress_exceptions(self) -> None:
         """Test context manager does not suppress exceptions."""
         wrapper = SparkSessionWrapper()
-        with pytest.raises(ValueError, match="test error"):
-            with wrapper:
-                raise ValueError("test error")
+        with pytest.raises(ValueError, match="test error"), wrapper:
+            raise ValueError("test error")
 
     def test_owns_session_false_after_injection(self) -> None:
         """Test _owns_session is False after injection."""

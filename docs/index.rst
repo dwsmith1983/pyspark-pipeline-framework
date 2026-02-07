@@ -42,6 +42,7 @@ management, and checkpoint/resume.
    user-guide/secrets
    user-guide/schema-contracts
    user-guide/checkpoint
+   user-guide/migration
 
 .. toctree::
    :maxdepth: 2

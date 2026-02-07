@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from pyspark_pipeline_framework.core.config.base import ComponentType
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig

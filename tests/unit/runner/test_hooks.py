@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock, call
-
-import pytest
+from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runner.hooks import (
