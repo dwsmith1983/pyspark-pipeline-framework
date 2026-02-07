@@ -18,6 +18,10 @@ from pyspark_pipeline_framework.runner.hooks_builtin import (
     LoggingHooks,
     MetricsHooks,
 )
+from pyspark_pipeline_framework.runner.quality_hooks import (
+    DataQualityError,
+    DataQualityHooks,
+)
 from pyspark_pipeline_framework.runner.result import (
     ComponentResult,
     PipelineResult,
@@ -31,6 +35,8 @@ __all__ = [
     "CheckpointStore",
     "ComponentResult",
     "CompositeHooks",
+    "DataQualityError",
+    "DataQualityHooks",
     "LocalCheckpointStore",
     "LoggingHooks",
     "MetricsHooks",

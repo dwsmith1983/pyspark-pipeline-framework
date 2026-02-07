@@ -15,7 +15,7 @@ from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitSt
 class LoggingHooks:
     """Hooks that log pipeline lifecycle events.
 
-    Uses ``%s`` formatting for lazy evaluation (ruff-compliant).
+    Uses ``%s`` formatting for lazy evaluation.
 
     Args:
         logger: Custom logger instance. Defaults to ``logging.getLogger("ppf.pipeline")``.
