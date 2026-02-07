@@ -30,7 +30,7 @@ class CircuitBreakerOpenError(Exception):
     def __init__(self, component_name: str, time_until_reset: float) -> None:
         self.component_name = component_name
         self.time_until_reset = time_until_reset
-        super().__init__(f"Circuit breaker '{component_name}' is open; " f"retry after {time_until_reset:.1f}s")
+        super().__init__(f"Circuit breaker '{component_name}' is open; retry after {time_until_reset:.1f}s")
 
 
 class CircuitBreaker:

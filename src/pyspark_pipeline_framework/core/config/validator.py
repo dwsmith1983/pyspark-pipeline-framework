@@ -99,13 +99,9 @@ def validate_pipeline(config: PipelineConfig) -> ValidationResult:
 
     # Phase: required fields
     if not config.name:
-        result.errors.append(
-            ValidationError(ValidationPhase.REQUIRED_FIELDS, "Pipeline name is empty")
-        )
+        result.errors.append(ValidationError(ValidationPhase.REQUIRED_FIELDS, "Pipeline name is empty"))
     if not config.components:
-        result.errors.append(
-            ValidationError(ValidationPhase.REQUIRED_FIELDS, "Pipeline has no components")
-        )
+        result.errors.append(ValidationError(ValidationPhase.REQUIRED_FIELDS, "Pipeline has no components"))
 
     # Phase: type resolution + component config
     for comp in config.components:

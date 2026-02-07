@@ -140,7 +140,7 @@ class SparkSessionWrapper:
 
             return SQLContext(self.spark_context)
         except ImportError:
-            raise RuntimeError("SQLContext is not available in PySpark 4.0+. " "Use SparkSession directly.") from None
+            raise RuntimeError("SQLContext is not available in PySpark 4.0+. Use SparkSession directly.") from None
 
     @property
     def is_connect_mode(self) -> bool:

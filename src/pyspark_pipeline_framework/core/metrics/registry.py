@@ -158,12 +158,8 @@ class InMemoryRegistry:
         """
         with self._lock:
             return {
-                "counters": {
-                    name: dict(buckets) for name, buckets in self._counters.items()
-                },
-                "gauges": {
-                    name: dict(buckets) for name, buckets in self._gauges.items()
-                },
+                "counters": {name: dict(buckets) for name, buckets in self._counters.items()},
+                "gauges": {name: dict(buckets) for name, buckets in self._gauges.items()},
                 "timers": {
                     name: {
                         key: {"total_ms": entry.value, "count": entry.count, "tags": dict(entry.tags)}

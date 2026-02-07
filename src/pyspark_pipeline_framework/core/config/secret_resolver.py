@@ -109,8 +109,6 @@ def _resolve_value(value: Any, resolver: SecretsResolver) -> Any:
     return value
 
 
-def _resolve_dict(
-    d: dict[str, Any], resolver: SecretsResolver
-) -> dict[str, Any]:
+def _resolve_dict(d: dict[str, Any], resolver: SecretsResolver) -> dict[str, Any]:
     """Resolve all secret references in a dictionary."""
     return {key: _resolve_value(val, resolver) for key, val in d.items()}

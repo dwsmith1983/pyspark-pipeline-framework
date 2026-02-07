@@ -154,9 +154,7 @@ def to_struct_type(schema: SchemaDefinition) -> StructType:
     for sf in schema.fields:
         spark_type = _data_type_to_spark(sf.data_type)
         metadata = sf.metadata if sf.metadata else None
-        fields.append(
-            StructField(sf.name, spark_type, nullable=sf.nullable, metadata=metadata)
-        )
+        fields.append(StructField(sf.name, spark_type, nullable=sf.nullable, metadata=metadata))
 
     return StructType(fields)
 

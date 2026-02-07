@@ -60,9 +60,6 @@ class ComponentConfig:
         # Resilience policy expansion
         if self.resilience is not None:
             if self.retry is not None or self.circuit_breaker is not None:
-                raise ValueError(
-                    "Cannot set both 'resilience' and individual "
-                    "'retry'/'circuit_breaker' fields"
-                )
+                raise ValueError("Cannot set both 'resilience' and individual 'retry'/'circuit_breaker' fields")
             self.retry = self.resilience.retry
             self.circuit_breaker = self.resilience.circuit_breaker

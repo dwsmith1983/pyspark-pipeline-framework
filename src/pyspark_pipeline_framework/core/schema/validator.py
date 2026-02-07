@@ -144,8 +144,7 @@ class SchemaValidator:
                             severity=ValidationSeverity.ERROR,
                             field_name=input_field.name,
                             message=(
-                                f"Required field '{input_field.name}' is missing "
-                                f"from output of '{source_component}'"
+                                f"Required field '{input_field.name}' is missing from output of '{source_component}'"
                             ),
                             source_component=source_component,
                             target_component=target_component,

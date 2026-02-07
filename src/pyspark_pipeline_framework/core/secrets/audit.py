@@ -54,15 +54,11 @@ class SecretsAuditLogger:
         self._emit(reference, result)
         return result
 
-    def resolve_all(
-        self, references: list[SecretsReference]
-    ) -> list[SecretResolutionResult]:
+    def resolve_all(self, references: list[SecretsReference]) -> list[SecretResolutionResult]:
         """Resolve multiple secrets, emitting an audit event for each."""
         return [self.resolve(ref) for ref in references]
 
-    def _emit(
-        self, reference: SecretsReference, result: SecretResolutionResult
-    ) -> None:
+    def _emit(self, reference: SecretsReference, result: SecretResolutionResult) -> None:
         audit_status = _STATUS_MAP.get(result.status, AuditStatus.FAILURE)
         metadata: dict[str, str] = {
             "provider": reference.provider,

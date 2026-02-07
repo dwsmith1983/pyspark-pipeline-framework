@@ -236,13 +236,9 @@ class KinesisStreamingSource(StreamingSource):
         if self.endpoint_url is not None:
             reader = reader.option("endpointUrl", self.endpoint_url)
         if self.max_fetch_records_per_shard is not None:
-            reader = reader.option(
-                "maxFetchRecordsPerShard", str(self.max_fetch_records_per_shard)
-            )
+            reader = reader.option("maxFetchRecordsPerShard", str(self.max_fetch_records_per_shard))
         if self.max_fetch_time_per_shard_sec is not None:
-            reader = reader.option(
-                "maxFetchTimePerShardSec", str(self.max_fetch_time_per_shard_sec)
-            )
+            reader = reader.option("maxFetchTimePerShardSec", str(self.max_fetch_time_per_shard_sec))
 
         for key, value in self.options.items():
             reader = reader.option(key, value)

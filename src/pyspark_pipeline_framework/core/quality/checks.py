@@ -95,10 +95,7 @@ def unique_check(
         return CheckResult(
             check_name=f"unique_{table}_{col_label}",
             passed=passed,
-            message=(
-                f"Columns [{', '.join(cols)}] in {table}: "
-                f"{duplicates} duplicate rows out of {total}"
-            ),
+            message=(f"Columns [{', '.join(cols)}] in {table}: {duplicates} duplicate rows out of {total}"),
             details={"total": total, "distinct": distinct, "duplicates": duplicates},
         )
 
@@ -154,15 +151,14 @@ def range_check(
         bound_desc = (
             f"[{min_value}, {max_value}]"
             if min_value is not None and max_value is not None
-            else f"[{min_value}, ∞)" if min_value is not None else f"(-∞, {max_value}]"
+            else f"[{min_value}, ∞)"
+            if min_value is not None
+            else f"(-∞, {max_value}]"
         )
         return CheckResult(
             check_name=f"range_{table}_{column}",
             passed=passed,
-            message=(
-                f"Column {column} in {table}: "
-                f"{violations} out-of-range rows (expected {bound_desc})"
-            ),
+            message=(f"Column {column} in {table}: {violations} out-of-range rows (expected {bound_desc})"),
             details={
                 "violations": violations,
                 "total": total,
@@ -233,9 +229,7 @@ def schema_check(
                 expected_type = _DATATYPE_TO_SPARK.get(dt_key, dt_key)
                 actual_type = actual_dtypes[field.name]
                 if actual_type != expected_type:
-                    type_mismatches.append(
-                        f"{field.name}: expected {expected_type}, got {actual_type}"
-                    )
+                    type_mismatches.append(f"{field.name}: expected {expected_type}, got {actual_type}")
 
         passed = len(missing) == 0 and len(type_mismatches) == 0
         issues: list[str] = []
@@ -247,9 +241,7 @@ def schema_check(
         return CheckResult(
             check_name=f"schema_{table}",
             passed=passed,
-            message=(
-                f"Schema check for {table}: {'OK' if passed else '; '.join(issues)}"
-            ),
+            message=(f"Schema check for {table}: {'OK' if passed else '; '.join(issues)}"),
             details={
                 "missing": missing,
                 "type_mismatches": type_mismatches,

@@ -103,13 +103,11 @@ def validate_component_class(class_path: str) -> list[str]:
     warnings: list[str] = []
 
     if not (hasattr(cls, "from_config") and callable(cls.from_config)):
-        warnings.append(
-            f"'{class_path}' does not implement from_config(); " f"will fall back to **kwargs instantiation"
-        )
+        warnings.append(f"'{class_path}' does not implement from_config(); will fall back to **kwargs instantiation")
 
     abstract_methods: frozenset[str] = getattr(cls, "__abstractmethods__", frozenset())
     if abstract_methods:
-        warnings.append(f"'{class_path}' has unimplemented abstract methods: " f"{', '.join(sorted(abstract_methods))}")
+        warnings.append(f"'{class_path}' has unimplemented abstract methods: {', '.join(sorted(abstract_methods))}")
 
     return warnings
 

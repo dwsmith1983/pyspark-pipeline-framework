@@ -133,7 +133,10 @@ class SimplePipelineRunner:
             assert comp_config is not None  # guaranteed by filter above
 
             result = self._executor.execute(
-                comp_config, self._spark_wrapper.spark, index, total,
+                comp_config,
+                self._spark_wrapper.spark,
+                index,
+                total,
             )
             results.append(result)
 
