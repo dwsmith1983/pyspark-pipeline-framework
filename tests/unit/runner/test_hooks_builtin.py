@@ -6,29 +6,20 @@ import logging
 from typing import Any
 from unittest.mock import MagicMock
 
-from pyspark_pipeline_framework.core.config.base import ComponentType
-from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.metrics.registry import InMemoryRegistry
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runner.hooks_builtin import (
     LoggingHooks,
     MetricsHooks,
 )
+from tests.factories import make_component_config, make_pipeline_config
 
 
-def _make_component_config(name: str = "test-comp") -> ComponentConfig:
-    return ComponentConfig(
-        name=name,
-        component_type=ComponentType.TRANSFORMATION,
-        class_path="fake.Module",
-    )
-
-
-def _make_pipeline_config() -> MagicMock:
+def make_pipeline_config() -> MagicMock:
     cfg = MagicMock()
     cfg.name = "test-pipeline"
     cfg.version = "1.0.0"
-    cfg.components = [_make_component_config()]
+    cfg.components = [make_component_config()]
     return cfg
 
 
@@ -50,7 +41,7 @@ class TestLoggingHooks:
         """before_pipeline emits an info log."""
         mock_logger = MagicMock(spec=logging.Logger)
         hooks = LoggingHooks(logger=mock_logger)
-        cfg = _make_pipeline_config()
+        cfg = make_pipeline_config()
 
         hooks.before_pipeline(cfg)
         mock_logger.info.assert_called_once()
@@ -61,7 +52,7 @@ class TestLoggingHooks:
         """after_pipeline emits an info log."""
         mock_logger = MagicMock(spec=logging.Logger)
         hooks = LoggingHooks(logger=mock_logger)
-        cfg = _make_pipeline_config()
+        cfg = make_pipeline_config()
 
         hooks.after_pipeline(cfg, None)
         mock_logger.info.assert_called_once()
@@ -70,7 +61,7 @@ class TestLoggingHooks:
         """before/after/failure component events log at appropriate levels."""
         mock_logger = MagicMock(spec=logging.Logger)
         hooks = LoggingHooks(logger=mock_logger)
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
 
         hooks.before_component(comp_cfg, 0, 3)
         assert mock_logger.info.call_count == 1
@@ -85,7 +76,7 @@ class TestLoggingHooks:
         """Retry and circuit breaker events log at warning level."""
         mock_logger = MagicMock(spec=logging.Logger)
         hooks = LoggingHooks(logger=mock_logger)
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
 
         hooks.on_retry_attempt(comp_cfg, 1, 3, 500, RuntimeError("err"))
         assert mock_logger.warning.call_count == 1
@@ -102,8 +93,8 @@ class TestMetricsHooks:
     def test_tracks_component_durations(self) -> None:
         """after_component records duration per component."""
         metrics = MetricsHooks()
-        cfg = _make_pipeline_config()
-        comp = _make_component_config("transform-a")
+        cfg = make_pipeline_config()
+        comp = make_component_config("transform-a")
 
         metrics.before_pipeline(cfg)
         metrics.after_component(comp, 0, 1, 350)
@@ -113,8 +104,8 @@ class TestMetricsHooks:
     def test_tracks_retries(self) -> None:
         """on_retry_attempt counts retries per component."""
         metrics = MetricsHooks()
-        cfg = _make_pipeline_config()
-        comp = _make_component_config("flaky")
+        cfg = make_pipeline_config()
+        comp = make_component_config("flaky")
 
         metrics.before_pipeline(cfg)
         metrics.on_retry_attempt(comp, 1, 3, 100, RuntimeError("err"))
@@ -127,7 +118,7 @@ class TestMetricsHooks:
         clock_values = iter([10.0, 10.5])  # 0.5s = 500ms
         metrics = MetricsHooks(clock=lambda: next(clock_values))
 
-        cfg = _make_pipeline_config()
+        cfg = make_pipeline_config()
         metrics.before_pipeline(cfg)
         metrics.after_pipeline(cfg, None)
 
@@ -137,8 +128,8 @@ class TestMetricsHooks:
         """before_pipeline resets all accumulated metrics."""
         clock_values = iter([0.0, 1.0, 2.0, 2.25])
         metrics = MetricsHooks(clock=lambda: next(clock_values))
-        cfg = _make_pipeline_config()
-        comp = _make_component_config("comp-a")
+        cfg = make_pipeline_config()
+        comp = make_component_config("comp-a")
 
         # First run
         metrics.before_pipeline(cfg)
@@ -176,7 +167,7 @@ class TestMetricsHooksWithRegistry:
         reg = InMemoryRegistry()
         clock_values = iter([10.0, 10.5])
         hooks = MetricsHooks(clock=lambda: next(clock_values), registry=reg)
-        cfg = _make_pipeline_config()
+        cfg = make_pipeline_config()
 
         hooks.before_pipeline(cfg)
         hooks.after_pipeline(cfg, None)
@@ -186,7 +177,7 @@ class TestMetricsHooksWithRegistry:
     def test_records_component_duration(self) -> None:
         reg = InMemoryRegistry()
         hooks = MetricsHooks(registry=reg)
-        comp = _make_component_config("transform-a")
+        comp = make_component_config("transform-a")
 
         hooks.after_component(comp, 0, 1, 350)
 
@@ -195,7 +186,7 @@ class TestMetricsHooksWithRegistry:
     def test_records_component_count_on_before_pipeline(self) -> None:
         reg = InMemoryRegistry()
         hooks = MetricsHooks(registry=reg)
-        cfg = _make_pipeline_config()
+        cfg = make_pipeline_config()
 
         hooks.before_pipeline(cfg)
 
@@ -204,7 +195,7 @@ class TestMetricsHooksWithRegistry:
     def test_records_retries(self) -> None:
         reg = InMemoryRegistry()
         hooks = MetricsHooks(registry=reg)
-        comp = _make_component_config("flaky")
+        comp = make_component_config("flaky")
 
         hooks.on_retry_attempt(comp, 1, 3, 100, RuntimeError("err"))
         hooks.on_retry_attempt(comp, 2, 3, 200, RuntimeError("err"))
@@ -214,7 +205,7 @@ class TestMetricsHooksWithRegistry:
     def test_records_failures(self) -> None:
         reg = InMemoryRegistry()
         hooks = MetricsHooks(registry=reg)
-        comp = _make_component_config("broken")
+        comp = make_component_config("broken")
 
         hooks.on_component_failure(comp, 0, RuntimeError("fail"))
 

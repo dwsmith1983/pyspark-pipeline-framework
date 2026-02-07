@@ -23,6 +23,7 @@ from pyspark_pipeline_framework.runner.result import (
 )
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
 from pyspark_pipeline_framework.runtime.dataflow.base import DataFlow
+from tests.factories import make_mock_spark_wrapper
 
 
 # ---------------------------------------------------------------------------
@@ -120,11 +121,9 @@ def _make_runner(
     clock: Any = None,
 ) -> SimplePipelineRunner:
     config = _make_pipeline_config(components)
-    wrapper = MagicMock()
-    wrapper.spark = MagicMock()
     return SimplePipelineRunner(
         config,
-        spark_wrapper=wrapper,
+        spark_wrapper=make_mock_spark_wrapper(),
         hooks=hooks,
         fail_fast=fail_fast,
         clock=clock,
@@ -446,10 +445,8 @@ class TestFromFile:
 }
 """ % __name__)
 
-        wrapper = MagicMock()
-        wrapper.spark = MagicMock()
         runner = SimplePipelineRunner.from_file(
-            hocon, spark_wrapper=wrapper, sleep_func=lambda _: None
+            hocon, spark_wrapper=make_mock_spark_wrapper(), sleep_func=lambda _: None
         )
         result = runner.run()
         assert result.pipeline_name == "file-pipeline"

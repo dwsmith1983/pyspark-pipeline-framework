@@ -7,22 +7,13 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
-from pyspark_pipeline_framework.core.config.base import ComponentType
-from pyspark_pipeline_framework.core.config.component import ComponentConfig
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runner.hooks import (
     CompositeHooks,
     NoOpHooks,
     PipelineHooks,
 )
-
-
-def _make_component_config(name: str = "test-comp") -> ComponentConfig:
-    return ComponentConfig(
-        name=name,
-        component_type=ComponentType.TRANSFORMATION,
-        class_path="fake.Module",
-    )
+from tests.factories import make_component_config
 
 
 class TestNoOpHooks:
@@ -32,7 +23,7 @@ class TestNoOpHooks:
         """Every lifecycle method can be called without error."""
         hooks = NoOpHooks()
         pipeline_cfg = MagicMock()
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
 
         hooks.before_pipeline(pipeline_cfg)
         hooks.after_pipeline(pipeline_cfg, None)
@@ -113,7 +104,7 @@ class TestCompositeHooks:
         hook = self._mock_hooks()
         composite = CompositeHooks(hook)
 
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
         composite.after_component(comp_cfg, 0, 3, 150)
         hook.after_component.assert_called_once_with(comp_cfg, 0, 3, 150)
 
@@ -133,7 +124,7 @@ class TestCompositeHooks:
         """Component lifecycle events are delegated."""
         hook = self._mock_hooks()
         composite = CompositeHooks(hook)
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
 
         composite.before_component(comp_cfg, 0, 2)
         composite.after_component(comp_cfg, 0, 2, 500)
@@ -147,7 +138,7 @@ class TestCompositeHooks:
         """on_retry_attempt is delegated."""
         hook = self._mock_hooks()
         composite = CompositeHooks(hook)
-        comp_cfg = _make_component_config()
+        comp_cfg = make_component_config()
         err = RuntimeError("retry")
 
         composite.on_retry_attempt(comp_cfg, 2, 5, 1000, err)

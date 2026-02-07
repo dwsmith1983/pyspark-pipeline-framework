@@ -6,10 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from pyspark_pipeline_framework.core.config.base import ComponentType
-from pyspark_pipeline_framework.core.config.component import ComponentConfig
-from pyspark_pipeline_framework.core.config.pipeline import PipelineConfig
-from pyspark_pipeline_framework.core.config.spark import SparkConfig
 from pyspark_pipeline_framework.core.quality.types import (
     CheckResult,
     CheckTiming,
@@ -21,28 +17,7 @@ from pyspark_pipeline_framework.runner.quality_hooks import (
     DataQualityError,
     DataQualityHooks,
 )
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _make_component_config(name: str = "my_comp") -> ComponentConfig:
-    return ComponentConfig(
-        name=name,
-        component_type=ComponentType.TRANSFORMATION,
-        class_path="some.module.Cls",
-    )
-
-
-def _make_pipeline_config() -> PipelineConfig:
-    return PipelineConfig(
-        name="test-pipeline",
-        version="1.0.0",
-        spark=SparkConfig(app_name="test"),
-        components=[_make_component_config("dummy")],
-    )
+from tests.factories import make_component_config, make_pipeline_config
 
 
 def _passing_check(
@@ -131,7 +106,7 @@ class TestDataQualityHooksBeforePipeline:
         hooks = DataQualityHooks(wrapper)
         hooks.register(_passing_check(timing=CheckTiming.BEFORE_PIPELINE))
 
-        hooks.before_pipeline(_make_pipeline_config())
+        hooks.before_pipeline(make_pipeline_config())
 
         assert len(hooks.results) == 1
         assert hooks.results[0].passed is True
@@ -141,8 +116,8 @@ class TestDataQualityHooksBeforePipeline:
         hooks = DataQualityHooks(wrapper)
         hooks.register(_passing_check(timing=CheckTiming.BEFORE_PIPELINE))
 
-        hooks.before_pipeline(_make_pipeline_config())
-        hooks.before_pipeline(_make_pipeline_config())
+        hooks.before_pipeline(make_pipeline_config())
+        hooks.before_pipeline(make_pipeline_config())
 
         # Results from first run should be cleared
         assert len(hooks.results) == 1
@@ -154,7 +129,7 @@ class TestDataQualityHooksAfterPipeline:
         hooks = DataQualityHooks(wrapper)
         hooks.register(_passing_check(timing=CheckTiming.AFTER_PIPELINE))
 
-        hooks.after_pipeline(_make_pipeline_config(), result=None)
+        hooks.after_pipeline(make_pipeline_config(), result=None)
 
         assert len(hooks.results) == 1
         assert hooks.results[0].passed is True
@@ -170,7 +145,7 @@ class TestDataQualityHooksAfterComponent:
             )
         )
 
-        hooks.after_component(_make_component_config("my_comp"), 0, 1, 100)
+        hooks.after_component(make_component_config("my_comp"), 0, 1, 100)
 
         assert len(hooks.results) == 1
 
@@ -183,7 +158,7 @@ class TestDataQualityHooksAfterComponent:
             )
         )
 
-        hooks.after_component(_make_component_config("my_comp"), 0, 1, 100)
+        hooks.after_component(make_component_config("my_comp"), 0, 1, 100)
 
         assert len(hooks.results) == 0
 
@@ -197,7 +172,7 @@ class TestDataQualityHooksFailureModes:
         )
 
         with pytest.raises(DataQualityError, match="fail_check"):
-            hooks.after_pipeline(_make_pipeline_config(), result=None)
+            hooks.after_pipeline(make_pipeline_config(), result=None)
 
     def test_warn_only_does_not_raise(self) -> None:
         wrapper = MagicMock()
@@ -207,7 +182,7 @@ class TestDataQualityHooksFailureModes:
         )
 
         # Should not raise
-        hooks.after_pipeline(_make_pipeline_config(), result=None)
+        hooks.after_pipeline(make_pipeline_config(), result=None)
 
         assert len(hooks.results) == 1
         assert hooks.results[0].passed is False
@@ -220,7 +195,7 @@ class TestDataQualityHooksFailureModes:
                 failure_mode=FailureMode.THRESHOLD, max_failures=2
             )
         )
-        config = _make_pipeline_config()
+        config = make_pipeline_config()
 
         # First two failures should be warnings
         hooks.after_pipeline(config, result=None)
@@ -241,7 +216,7 @@ class TestDataQualityHooksFailureModes:
                 max_failures=1,
             )
         )
-        config = _make_pipeline_config()
+        config = make_pipeline_config()
 
         # First run: 1 failure within threshold
         hooks.before_pipeline(config)
@@ -261,7 +236,7 @@ class TestDataQualityHooksCheckException:
         hooks.register(_raising_check(timing=CheckTiming.AFTER_PIPELINE))
 
         with pytest.raises(DataQualityError, match="raise_check"):
-            hooks.after_pipeline(_make_pipeline_config(), result=None)
+            hooks.after_pipeline(make_pipeline_config(), result=None)
 
         assert len(hooks.results) == 1
         assert hooks.results[0].passed is False
@@ -274,20 +249,20 @@ class TestDataQualityHooksNoOpMethods:
     def test_before_component(self) -> None:
         wrapper = MagicMock()
         hooks = DataQualityHooks(wrapper)
-        hooks.before_component(_make_component_config(), 0, 1)
+        hooks.before_component(make_component_config(), 0, 1)
 
     def test_on_component_failure(self) -> None:
         wrapper = MagicMock()
         hooks = DataQualityHooks(wrapper)
         hooks.on_component_failure(
-            _make_component_config(), 0, RuntimeError("err")
+            make_component_config(), 0, RuntimeError("err")
         )
 
     def test_on_retry_attempt(self) -> None:
         wrapper = MagicMock()
         hooks = DataQualityHooks(wrapper)
         hooks.on_retry_attempt(
-            _make_component_config(), 1, 3, 1000, RuntimeError("err")
+            make_component_config(), 1, 3, 1000, RuntimeError("err")
         )
 
     def test_on_circuit_breaker_state_change(self) -> None:
@@ -305,7 +280,7 @@ class TestDataQualityHooksResultsCopy:
         hooks.register(
             _passing_check(timing=CheckTiming.AFTER_PIPELINE)
         )
-        hooks.after_pipeline(_make_pipeline_config(), result=None)
+        hooks.after_pipeline(make_pipeline_config(), result=None)
 
         results = hooks.results
         results.clear()
