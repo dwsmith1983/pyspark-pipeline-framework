@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.abspath("../src"))
 project = "pyspark-pipeline-framework"
 copyright = "2025, Dustin Smith"
 author = "Dustin Smith"
-version = "0.1.0"
-release = "0.1.0"
+version = "1.0.0"
+release = "1.0.0"
 
 extensions = [
     "sphinx.ext.autodoc",
