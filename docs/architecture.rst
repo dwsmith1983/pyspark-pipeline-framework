@@ -22,45 +22,45 @@ component abstractions, runtime execution, and orchestration:
    ┌─────────────────────────────────────────────────────────────────────┐
    │                       Runner / Orchestration                        │
    ├─────────────────────────────────────────────────────────────────────┤
-   │  SimplePipelineRunner   │  PipelineHooks      │  CheckpointStore   │
+   │  SimplePipelineRunner   │  PipelineHooks       │  CheckpointStore   │
    │  (execution engine)     │  (lifecycle events)  │  (resume state)    │
    └─────────────────────────────────────────────────────────────────────┘
                                      │
                     ┌────────────────┼────────────────┐
                     ▼                ▼                ▼
-   ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐
-   │   Batch Pipeline  │ │ Streaming Pipeline│ │  Hooks Implementations   │
-   │                   │ │                   │ │                          │
-   │  DataFlow         │ │  StreamingSource  │ │  LoggingHooks            │
-   │  SchemaAware      │ │  StreamingSink    │ │  MetricsHooks            │
-   │  DataFlow         │ │  StreamingPipeline│ │  DataQualityHooks        │
-   └──────────────────┘ └──────────────────┘ │  AuditHooks              │
-                                              │  CheckpointHooks         │
-                                              └──────────────────────────┘
+   ┌──────────────────┐  ┌───────────────────┐ ┌──────────────────────────┐
+   │   Batch Pipeline │  │ Streaming Pipeline│ │  Hooks Implementations   │
+   │                  │  │                   │ │                          │
+   │  DataFlow        │  │  StreamingSource  │ │  LoggingHooks            │
+   │  SchemaAware     │  │  StreamingSink    │ │  MetricsHooks            │
+   │  DataFlow        │  │  StreamingPipeline│ │  DataQualityHooks        │
+   └──────────────────┘  └───────────────────┘ │  AuditHooks              │
+                                               │  CheckpointHooks         │
+                                               └──────────────────────────┘
                                      │
                                      ▼
-   ┌─────────────────────────────────────────────────────────────────────┐
-   │                         Core Abstractions                           │
-   ├─────────────────────────────────────────────────────────────────────┤
-   │  PipelineComponent     │  SchemaContract      │  ConfigurableInstance│
-   │  (ABC)                 │  (Protocol)           │  (Protocol)         │
-   └─────────────────────────────────────────────────────────────────────┘
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │                         Core Abstractions                             │
+   ├───────────────────────────────────────────────────────────────────────┤
+   │  PipelineComponent     │  SchemaContract       │  ConfigurableInstance│
+   │  (ABC)                 │  (Protocol)           │  (Protocol)          │
+   └───────────────────────────────────────────────────────────────────────┘
                                      │
                                      ▼
-   ┌─────────────────────────────────────────────────────────────────────┐
-   │                        Core Services                                │
-   ├──────────────┬──────────────┬──────────────┬────────────────────────┤
-   │  Resilience   │  Quality     │  Audit       │  Secrets               │
-   │  RetryExecutor│  DQ Checks   │  AuditSink   │  SecretsResolver       │
-   │  CircuitBreaker│             │  ConfigFilter│  SecretsCache          │
-   └──────────────┴──────────────┴──────────────┴────────────────────────┘
+   ┌───────────────────────────────────────────────────────────────────────┐
+   │                        Core Services                                  │
+   ├────────────────┬──────────────┬──────────────┬────────────────────────┤
+   │  Resilience    │  Quality     │  Audit       │  Secrets               │
+   │  RetryExecutor │  DQ Checks   │  AuditSink   │  SecretsResolver       │
+   │  CircuitBreaker│              │  ConfigFilter│  SecretsCache          │
+   └────────────────┴──────────────┴──────────────┴────────────────────────┘
                                      │
                                      ▼
    ┌─────────────────────────────────────────────────────────────────────┐
    │                     Configuration Layer                             │
    ├─────────────────────────────────────────────────────────────────────┤
-   │  PipelineConfig        │  ComponentConfig    │  SparkConfig          │
-   │  (HOCON / dataconf)    │  RetryConfig        │  ConfigLoader         │
+   │  PipelineConfig        │  ComponentConfig    │  SparkConfig         │
+   │  (HOCON / dataconf)    │  RetryConfig        │  ConfigLoader        │
    └─────────────────────────────────────────────────────────────────────┘
 
 Batch Pipeline Flow
@@ -74,16 +74,16 @@ A batch pipeline follows this execution path:
    │  HOCON    │────→│ ConfigLoader │────→│ PipelineConfig │
    │  File     │     │              │     │                │
    └───────────┘     └──────────────┘     └───────┬────────┘
-                                                   │
-                                                   ▼
+                                                  │
+                                                  ▼
                                           ┌────────────────┐
                                           │ Dynamic Loader │
                                           │ (importlib)    │
                                           └───────┬────────┘
-                                                   │
-                                                   ▼
+                                                  │
+                                                  ▼
                      ┌─────────────────────────────────────────────┐
-                     │          SimplePipelineRunner                │
+                     │          SimplePipelineRunner               │
                      │                                             │
                      │  1. Resolve dependency order                │
                      │  2. For each component:                     │
@@ -102,9 +102,9 @@ A streaming pipeline wires a source, transform, and sink:
 .. code-block:: text
 
    ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-   │ StreamingSource  │────→│   transform()   │────→│  StreamingSink  │
-   │ (Kafka, File,   │     │  (user-defined)  │     │ (Delta, Console,│
-   │  Delta, Rate)   │     │                  │     │  Kafka, File)   │
+   │ StreamingSource │────→│   transform()   │────→│  StreamingSink  │
+   │ (Kafka, File,   │     │  (user-defined) │     │ (Delta, Console,│
+   │  Delta, Rate)   │     │                 │     │  Kafka, File)   │
    └─────────────────┘     └─────────────────┘     └─────────────────┘
            │                                                │
            └──────────── Spark Structured Streaming ────────┘
