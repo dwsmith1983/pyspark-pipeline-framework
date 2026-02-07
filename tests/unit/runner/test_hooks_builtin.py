@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.core.config.base import ComponentType
 from pyspark_pipeline_framework.core.config.component import ComponentConfig
+from pyspark_pipeline_framework.core.metrics.registry import InMemoryRegistry
 from pyspark_pipeline_framework.core.resilience.circuit_breaker import CircuitState
 from pyspark_pipeline_framework.runner.hooks_builtin import (
     LoggingHooks,
@@ -157,3 +158,75 @@ class TestMetricsHooks:
 
         metrics.after_pipeline(cfg, None)
         assert metrics.total_duration_ms == 250
+
+
+class TestMetricsHooksWithRegistry:
+    """Tests for MetricsHooks with an InMemoryRegistry."""
+
+    def test_registry_property(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+        assert hooks.registry is reg
+
+    def test_no_registry_by_default(self) -> None:
+        hooks = MetricsHooks()
+        assert hooks.registry is None
+
+    def test_records_pipeline_duration(self) -> None:
+        reg = InMemoryRegistry()
+        clock_values = iter([10.0, 10.5])
+        hooks = MetricsHooks(clock=lambda: next(clock_values), registry=reg)
+        cfg = _make_pipeline_config()
+
+        hooks.before_pipeline(cfg)
+        hooks.after_pipeline(cfg, None)
+
+        assert reg.get_timer_total("ppf.pipeline.duration", tags={"pipeline": "test-pipeline"}) == 500.0
+
+    def test_records_component_duration(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+        comp = _make_component_config("transform-a")
+
+        hooks.after_component(comp, 0, 1, 350)
+
+        assert reg.get_timer_total("ppf.component.duration", tags={"component": "transform-a"}) == 350.0
+
+    def test_records_component_count_on_before_pipeline(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+        cfg = _make_pipeline_config()
+
+        hooks.before_pipeline(cfg)
+
+        assert reg.get_gauge("ppf.pipeline.components", tags={"pipeline": "test-pipeline"}) == 1.0
+
+    def test_records_retries(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+        comp = _make_component_config("flaky")
+
+        hooks.on_retry_attempt(comp, 1, 3, 100, RuntimeError("err"))
+        hooks.on_retry_attempt(comp, 2, 3, 200, RuntimeError("err"))
+
+        assert reg.get_counter("ppf.component.retries", tags={"component": "flaky"}) == 2.0
+
+    def test_records_failures(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+        comp = _make_component_config("broken")
+
+        hooks.on_component_failure(comp, 0, RuntimeError("fail"))
+
+        assert reg.get_counter("ppf.component.failures", tags={"component": "broken"}) == 1.0
+
+    def test_records_circuit_breaker_state_changes(self) -> None:
+        reg = InMemoryRegistry()
+        hooks = MetricsHooks(registry=reg)
+
+        hooks.on_circuit_breaker_state_change("comp1", CircuitState.CLOSED, CircuitState.OPEN)
+
+        assert reg.get_counter(
+            "ppf.circuit_breaker.state_changes",
+            tags={"component": "comp1", "to_state": "open"},
+        ) == 1.0

@@ -22,8 +22,17 @@ from pyspark_pipeline_framework.core.config.presets import CircuitBreakerConfigs
 from pyspark_pipeline_framework.core.config.retry import CircuitBreakerConfig, RetryConfig
 from pyspark_pipeline_framework.core.config.secrets import SecretsConfig
 from pyspark_pipeline_framework.core.config.spark import SparkConfig
+from pyspark_pipeline_framework.core.config.validator import (
+    DryRunResult,
+    ValidationError,
+    ValidationPhase,
+    ValidationResult,
+    dry_run,
+    validate_pipeline,
+)
 
 __all__ = [
+    "DryRunResult",
     "AuditConfig",
     "CircuitBreakerConfig",
     "CircuitBreakerConfigs",
@@ -44,7 +53,12 @@ __all__ = [
     "SecretsProvider",
     "SparkConfig",
     "SparkDeployMode",
+    "ValidationError",
+    "ValidationPhase",
+    "ValidationResult",
+    "dry_run",
     "load_from_env",
     "load_from_file",
     "load_from_string",
+    "validate_pipeline",
 ]
