@@ -148,13 +148,12 @@ def range_check(
         violations = df.filter(filter_expr).count()
         total = df.count()
         passed = violations == 0
-        bound_desc = (
-            f"[{min_value}, {max_value}]"
-            if min_value is not None and max_value is not None
-            else f"[{min_value}, ∞)"
-            if min_value is not None
-            else f"(-∞, {max_value}]"
-        )
+        if min_value is not None and max_value is not None:
+            bound_desc = f"[{min_value}, {max_value}]"
+        elif min_value is not None:
+            bound_desc = f"[{min_value}, ∞)"
+        else:
+            bound_desc = f"(-∞, {max_value}]"
         return CheckResult(
             check_name=f"range_{table}_{column}",
             passed=passed,

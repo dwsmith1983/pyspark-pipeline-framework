@@ -86,6 +86,12 @@ jobs:
       - name: Run ruff format check
         run: ruff format --check src/ tests/
 
+      - name: Run black check
+        run: black --check src/
+
+      - name: Run isort check
+        run: isort --check --diff src/
+
       - name: Run mypy
         run: mypy src/
 

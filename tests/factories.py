@@ -20,6 +20,7 @@ from pyspark_pipeline_framework.core.config.retry import (
 )
 from pyspark_pipeline_framework.core.config.spark import SparkConfig
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
+from pyspark_pipeline_framework.runtime.session.wrapper import SparkSessionWrapper
 
 
 def make_component_config(
@@ -65,7 +66,7 @@ def make_pipeline_config(
 
 def make_mock_spark_wrapper() -> MagicMock:
     """Create a mock ``SparkSessionWrapper`` with a nested mock spark session."""
-    wrapper = MagicMock()
+    wrapper = MagicMock(spec=SparkSessionWrapper)
     wrapper.spark = MagicMock()
     return wrapper
 

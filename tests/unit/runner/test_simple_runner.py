@@ -50,7 +50,7 @@ class _FailingComponent(PipelineComponent):
 class _FlakeyComponent(PipelineComponent):
     """Fails the first N calls, then succeeds."""
 
-    failures_remaining = 0
+    failures_remaining: ClassVar[int] = 0
 
     @property
     def name(self) -> str:

@@ -11,11 +11,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from pyspark_pipeline_framework.core.schema.definition import (
-    DataType,
-    SchemaDefinition,
-    SchemaField,
-)
+from pyspark_pipeline_framework.core.schema.definition import DataType, SchemaDefinition, SchemaField
 
 if TYPE_CHECKING:
     from pyspark.sql.types import DataType as SparkDataType

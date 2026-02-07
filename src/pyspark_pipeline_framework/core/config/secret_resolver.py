@@ -23,10 +23,7 @@ import logging
 import re
 from typing import Any
 
-from pyspark_pipeline_framework.core.secrets.base import (
-    SecretResolutionStatus,
-    SecretsReference,
-)
+from pyspark_pipeline_framework.core.secrets.base import SecretResolutionStatus, SecretsReference
 from pyspark_pipeline_framework.core.secrets.resolver import SecretsResolver
 
 logger = logging.getLogger(__name__)

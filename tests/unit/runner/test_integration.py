@@ -7,9 +7,7 @@ wired together.
 
 from __future__ import annotations
 
-from typing import Any
-from unittest.mock import MagicMock
-
+from typing import Any, ClassVar
 import pytest
 
 from pyspark_pipeline_framework.core.component.base import PipelineComponent
@@ -33,6 +31,7 @@ from pyspark_pipeline_framework.runner.hooks_builtin import LoggingHooks, Metric
 from pyspark_pipeline_framework.runner.quality_hooks import DataQualityHooks
 from pyspark_pipeline_framework.runner.result import PipelineResultStatus
 from pyspark_pipeline_framework.runner.simple_runner import SimplePipelineRunner
+from tests.factories import make_mock_spark_wrapper
 
 # ---------------------------------------------------------------------------
 # Shared mutable state — isolated per-test by the autouse fixture below.
@@ -76,7 +75,7 @@ class _LoadComponent(PipelineComponent):
 
 
 class _FlakeCounter:
-    remaining = 0
+    remaining: ClassVar[int] = 0
 
 
 class _FlakeTransform(PipelineComponent):
@@ -127,11 +126,9 @@ def _runner(
     fail_fast: bool = True,
     clock: Any = None,
 ) -> SimplePipelineRunner:
-    wrapper = MagicMock()
-    wrapper.spark = MagicMock()
     return SimplePipelineRunner(
         config,
-        spark_wrapper=wrapper,
+        spark_wrapper=make_mock_spark_wrapper(),
         hooks=hooks,
         fail_fast=fail_fast,
         clock=clock,
@@ -169,8 +166,7 @@ class TestHooksComposition:
     def test_composite_hooks_all_fire(self) -> None:
 
         registry = InMemoryRegistry()
-        wrapper = MagicMock()
-        wrapper.spark = MagicMock()
+        wrapper = make_mock_spark_wrapper()
 
         metrics = MetricsHooks(registry=registry)
         logging_hooks = LoggingHooks()
@@ -331,8 +327,7 @@ class TestDQFailureBlocksPipeline:
 
     def test_dq_failure_captured(self) -> None:
 
-        wrapper = MagicMock()
-        wrapper.spark = MagicMock()
+        wrapper = make_mock_spark_wrapper()
 
         dq = DataQualityHooks(wrapper)
         dq.register(
