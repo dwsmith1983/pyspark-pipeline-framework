@@ -116,13 +116,13 @@ class TestDataQualityHooksRegister:
         hooks = DataQualityHooks(wrapper)
         check = _passing_check()
         hooks.register(check)
-        assert len(hooks._checks) == 1
+        assert len(hooks.checks) == 1
 
     def test_register_all(self) -> None:
         wrapper = MagicMock()
         hooks = DataQualityHooks(wrapper)
         hooks.register_all([_passing_check(), _failing_check()])
-        assert len(hooks._checks) == 2
+        assert len(hooks.checks) == 2
 
 
 class TestDataQualityHooksBeforePipeline:

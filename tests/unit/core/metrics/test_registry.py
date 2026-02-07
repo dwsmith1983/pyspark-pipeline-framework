@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import threading
 
+import pytest
+
 from pyspark_pipeline_framework.core.metrics.registry import (
     InMemoryRegistry,
     MeterRegistry,
@@ -158,3 +160,25 @@ class TestInMemoryRegistryThreadSafety:
             t.join()
 
         assert reg.get_counter("concurrent") == 4 * iterations
+
+
+# ---------------------------------------------------------------------------
+# Parameterized: missing metric defaults across all types
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("getter", "expected"),
+    [
+        pytest.param(lambda r: r.get_counter("x"), 0.0, id="counter"),
+        pytest.param(lambda r: r.get_gauge("x"), None, id="gauge"),
+        pytest.param(lambda r: r.get_timer_total("x"), 0.0, id="timer_total"),
+        pytest.param(lambda r: r.get_timer_count("x"), 0, id="timer_count"),
+    ],
+)
+def test_missing_metric_returns_default(
+    getter: object, expected: object
+) -> None:
+    """All metric getters return sensible defaults for unrecorded names."""
+    reg = InMemoryRegistry()
+    assert getter(reg) == expected  # type: ignore[operator]

@@ -3,12 +3,51 @@
 from __future__ import annotations
 
 import random
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
 
 from pyspark_pipeline_framework.core.config.retry import RetryConfig
 from pyspark_pipeline_framework.core.resilience.retry import RetryExecutor, with_retry
+
+
+# ---------------------------------------------------------------------------
+# Parameterized: exponential backoff delay table
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("initial", "multiplier", "attempt", "expected"),
+    [
+        (1.0, 2.0, 0, 1.0),
+        (1.0, 2.0, 1, 2.0),
+        (1.0, 2.0, 2, 4.0),
+        (1.0, 2.0, 3, 8.0),
+        (0.5, 3.0, 0, 0.5),
+        (0.5, 3.0, 1, 1.5),
+        (0.5, 3.0, 2, 4.5),
+    ],
+    ids=[
+        "1x2^0=1",
+        "1x2^1=2",
+        "1x2^2=4",
+        "1x2^3=8",
+        "0.5x3^0=0.5",
+        "0.5x3^1=1.5",
+        "0.5x3^2=4.5",
+    ],
+)
+def test_exponential_backoff_parametrized(
+    initial: float, multiplier: float, attempt: int, expected: float
+) -> None:
+    config = RetryConfig(
+        initial_delay_seconds=initial,
+        backoff_multiplier=multiplier,
+        max_delay_seconds=100.0,
+    )
+    executor = RetryExecutor(config, jitter_factor=0.0)
+    assert executor.calculate_delay(attempt) == expected
 
 
 class TestCalculateDelay:

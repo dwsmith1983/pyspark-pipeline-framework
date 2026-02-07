@@ -57,6 +57,11 @@ class DataQualityHooks:
         self._checks.extend(checks)
 
     @property
+    def checks(self) -> list[DataQualityCheck]:
+        """All registered data quality checks."""
+        return list(self._checks)
+
+    @property
     def results(self) -> list[CheckResult]:
         """All check results from the current run."""
         return self._results.copy()

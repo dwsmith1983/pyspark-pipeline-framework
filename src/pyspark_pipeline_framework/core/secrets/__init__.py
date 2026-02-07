@@ -1,5 +1,6 @@
 """Secrets management: providers, resolver, and caching."""
 
+from pyspark_pipeline_framework.core.secrets.audit import SecretsAuditLogger
 from pyspark_pipeline_framework.core.secrets.base import (
     SecretResolutionResult,
     SecretResolutionStatus,
@@ -18,6 +19,7 @@ __all__ = [
     "EnvSecretsProvider",
     "SecretResolutionResult",
     "SecretResolutionStatus",
+    "SecretsAuditLogger",
     "SecretsCache",
     "SecretsProvider",
     "SecretsReference",

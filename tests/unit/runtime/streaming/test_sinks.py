@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from pyspark_pipeline_framework.runtime.streaming.base import OutputMode
 from pyspark_pipeline_framework.runtime.streaming.sinks import (
     CloudFileFormat,
@@ -437,3 +439,44 @@ class TestForeachBatchSink:
             checkpoint_location="/ckpt",
         )
         assert sink.query_name is None
+
+
+# ===================================================================
+# Parameterized: all sinks default to APPEND output mode
+# ===================================================================
+
+
+@pytest.mark.parametrize(
+    "sink_factory",
+    [
+        pytest.param(
+            lambda: KafkaStreamingSink(bootstrap_servers="b:9092", topic="t", checkpoint_location="/ckpt"),
+            id="kafka",
+        ),
+        pytest.param(
+            lambda: DeltaStreamingSink(path="/p", checkpoint_location="/ckpt"),
+            id="delta",
+        ),
+        pytest.param(lambda: ConsoleStreamingSink(), id="console"),
+        pytest.param(
+            lambda: IcebergStreamingSink(table="cat.db.t", checkpoint_location="/ckpt"),
+            id="iceberg",
+        ),
+        pytest.param(
+            lambda: FileStreamingSink(path="/p", checkpoint_location="/ckpt"),
+            id="file",
+        ),
+        pytest.param(
+            lambda: CloudStorageStreamingSink(path="s3a://b/p", checkpoint_location="/ckpt"),
+            id="cloud_storage",
+        ),
+        pytest.param(
+            lambda: ForeachBatchSink(process_batch=lambda df, bid: None, checkpoint_location="/ckpt"),
+            id="foreach_batch",
+        ),
+    ],
+)
+def test_all_sinks_default_to_append(sink_factory: object) -> None:
+    """Every sink defaults to APPEND output mode."""
+    sink = sink_factory()  # type: ignore[operator]
+    assert sink.output_mode == OutputMode.APPEND
