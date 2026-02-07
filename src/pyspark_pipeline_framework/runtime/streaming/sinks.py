@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import enum
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -124,3 +126,81 @@ class FileStreamingSink(StreamingSink):
         if self.partition_by:
             writer = writer.partitionBy(*self.partition_by)
         return writer.option("path", self.path)
+
+
+# ---------------------------------------------------------------------------
+# Cloud Storage
+# ---------------------------------------------------------------------------
+
+
+class CloudFileFormat(str, enum.Enum):
+    """Supported file formats for cloud storage streaming sink."""
+
+    PARQUET = "parquet"
+    JSON = "json"
+    CSV = "csv"
+    AVRO = "avro"
+    ORC = "orc"
+
+
+@dataclass
+class CloudStorageStreamingSink(StreamingSink):
+    """Streaming sink for cloud object storage (S3, GCS, ADLS).
+
+    Writes streaming data in a specified file format to a cloud path
+    such as ``s3://``, ``gs://``, or ``abfss://``.
+
+    Args:
+        path: Cloud storage path (e.g. ``"s3a://bucket/prefix"``).
+        file_format: Output file format.
+        checkpoint_location: Checkpoint directory path.
+        output_mode: Streaming output mode.
+        partition_by: Columns to partition the output by.
+        compression: Compression codec (e.g. ``"snappy"``, ``"gzip"``).
+        options: Additional writer options.
+    """
+
+    path: str
+    file_format: CloudFileFormat = CloudFileFormat.PARQUET
+    checkpoint_location: str = ""
+    output_mode: OutputMode = OutputMode.APPEND
+    partition_by: list[str] = field(default_factory=list)
+    compression: str | None = None
+    options: dict[str, str] = field(default_factory=dict)
+
+    def write_stream(self, df: DataFrame) -> DataStreamWriter:
+        writer = df.writeStream.format(self.file_format.value)
+        if self.partition_by:
+            writer = writer.partitionBy(*self.partition_by)
+        if self.compression is not None:
+            writer = writer.option("compression", self.compression)
+        for key, value in self.options.items():
+            writer = writer.option(key, value)
+        return writer.option("path", self.path)
+
+
+# ---------------------------------------------------------------------------
+# ForeachBatch
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ForeachBatchSink(StreamingSink):
+    """Streaming sink using ``foreachBatch`` for custom per-batch processing.
+
+    The ``process_batch`` callable receives a ``(DataFrame, batch_id)``
+    pair and performs arbitrary write logic (e.g. upserts, multi-sink
+    fan-out, MERGE INTO).
+
+    Args:
+        process_batch: Callback invoked for each micro-batch.
+        checkpoint_location: Checkpoint directory path.
+        output_mode: Streaming output mode.
+    """
+
+    process_batch: Callable[[DataFrame, int], None]
+    checkpoint_location: str = ""
+    output_mode: OutputMode = OutputMode.APPEND
+
+    def write_stream(self, df: DataFrame) -> DataStreamWriter:
+        return df.writeStream.foreachBatch(self.process_batch)

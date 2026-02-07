@@ -6,9 +6,13 @@ from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.runtime.streaming.sources import (
     DeltaStreamingSource,
+    EventHubsStartingPosition,
+    EventHubsStreamingSource,
     FileStreamingSource,
     IcebergStreamingSource,
     KafkaStreamingSource,
+    KinesisStartingPosition,
+    KinesisStreamingSource,
     RateStreamingSource,
 )
 
@@ -258,3 +262,245 @@ class TestRateStreamingSource:
         src = RateStreamingSource()
         assert src.watermark_column is None
         assert src.watermark_delay is None
+
+
+# ===================================================================
+# TestEventHubsStreamingSource
+# ===================================================================
+
+
+class TestEventHubsStreamingSource:
+    def test_read_stream_builds_chain(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="Endpoint=sb://...",
+            event_hub_name="my-hub",
+        )
+        src.read_stream(spark)
+
+        spark.readStream.format.assert_called_once_with("eventhubs")
+        reader.option.assert_any_call("eventhubs.connectionString", "Endpoint=sb://...")
+        reader.option.assert_any_call("eventhubs.name", "my-hub")
+
+    def test_consumer_group_default(self) -> None:
+        src = EventHubsStreamingSource(
+            connection_string="conn", event_hub_name="hub"
+        )
+        assert src.consumer_group == "$Default"
+
+    def test_consumer_group_custom(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            consumer_group="my-group",
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("eventhubs.consumerGroup", "my-group")
+
+    def test_starting_position_end_of_stream(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            starting_position=EventHubsStartingPosition.END_OF_STREAM,
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call(
+            "eventhubs.startingPosition", '{"offset": "@latest"}'
+        )
+
+    def test_starting_position_start_of_stream(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            starting_position=EventHubsStartingPosition.START_OF_STREAM,
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call(
+            "eventhubs.startingPosition",
+            '{"offset": "-1", "isInclusive": true}',
+        )
+
+    def test_max_events_per_trigger(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            max_events_per_trigger=1000,
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("maxEventsPerTrigger", "1000")
+
+    def test_max_events_not_set_when_none(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn", event_hub_name="hub"
+        )
+        src.read_stream(spark)
+        # Verify maxEventsPerTrigger was NOT set
+        for call in reader.option.call_args_list:
+            assert call[0][0] != "maxEventsPerTrigger"
+
+    def test_receiver_and_operation_timeout(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            receiver_timeout="60",
+            operation_timeout="120",
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("eventhubs.receiverTimeout", "60")
+        reader.option.assert_any_call("eventhubs.operationTimeout", "120")
+
+    def test_extra_options(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn",
+            event_hub_name="hub",
+            options={"custom.key": "val"},
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("custom.key", "val")
+
+    def test_watermark_defaults_none(self) -> None:
+        src = EventHubsStreamingSource(
+            connection_string="conn", event_hub_name="hub"
+        )
+        assert src.watermark_column is None
+        assert src.watermark_delay is None
+
+    def test_starting_position_enum_values(self) -> None:
+        assert EventHubsStartingPosition.START_OF_STREAM.value == "start_of_stream"
+        assert EventHubsStartingPosition.END_OF_STREAM.value == "end_of_stream"
+
+    def test_loads_without_start(self) -> None:
+        """read_stream calls load() with no arguments (EventHubs pattern)."""
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = EventHubsStreamingSource(
+            connection_string="conn", event_hub_name="hub"
+        )
+        src.read_stream(spark)
+        reader.load.assert_called_once_with()
+
+
+# ===================================================================
+# TestKinesisStreamingSource
+# ===================================================================
+
+
+class TestKinesisStreamingSource:
+    def test_read_stream_builds_chain(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(
+            stream_name="my-stream",
+            region="us-east-1",
+        )
+        src.read_stream(spark)
+
+        spark.readStream.format.assert_called_once_with("kinesis")
+        reader.option.assert_any_call("streamName", "my-stream")
+        reader.option.assert_any_call("region", "us-east-1")
+
+    def test_starting_position_default_latest(self) -> None:
+        src = KinesisStreamingSource(stream_name="s", region="us-east-1")
+        assert src.starting_position == KinesisStartingPosition.LATEST
+
+    def test_starting_position_trim_horizon(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(
+            stream_name="s",
+            region="us-east-1",
+            starting_position=KinesisStartingPosition.TRIM_HORIZON,
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("startingPosition", "trim_horizon")
+
+    def test_endpoint_url(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(
+            stream_name="s",
+            region="us-east-1",
+            endpoint_url="http://localhost:4566",
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("endpointUrl", "http://localhost:4566")
+
+    def test_endpoint_not_set_when_none(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(stream_name="s", region="us-east-1")
+        src.read_stream(spark)
+        for call in reader.option.call_args_list:
+            assert call[0][0] != "endpointUrl"
+
+    def test_max_fetch_options(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(
+            stream_name="s",
+            region="us-east-1",
+            max_fetch_records_per_shard=10000,
+            max_fetch_time_per_shard_sec=30,
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("maxFetchRecordsPerShard", "10000")
+        reader.option.assert_any_call("maxFetchTimePerShardSec", "30")
+
+    def test_extra_options(self) -> None:
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(
+            stream_name="s",
+            region="us-east-1",
+            options={"roleArn": "arn:aws:iam::role/my-role"},
+        )
+        src.read_stream(spark)
+        reader.option.assert_any_call("roleArn", "arn:aws:iam::role/my-role")
+
+    def test_watermark_defaults_none(self) -> None:
+        src = KinesisStreamingSource(stream_name="s", region="us-east-1")
+        assert src.watermark_column is None
+        assert src.watermark_delay is None
+
+    def test_starting_position_enum_values(self) -> None:
+        assert KinesisStartingPosition.LATEST.value == "latest"
+        assert KinesisStartingPosition.TRIM_HORIZON.value == "trim_horizon"
+
+    def test_loads_without_args(self) -> None:
+        """read_stream calls load() with no arguments."""
+        spark = MagicMock()
+        reader = _self_returning_mock()
+        spark.readStream.format.return_value = reader
+        src = KinesisStreamingSource(stream_name="s", region="us-east-1")
+        src.read_stream(spark)
+        reader.load.assert_called_once_with()

@@ -6,9 +6,12 @@ from unittest.mock import MagicMock
 
 from pyspark_pipeline_framework.runtime.streaming.base import OutputMode
 from pyspark_pipeline_framework.runtime.streaming.sinks import (
+    CloudFileFormat,
+    CloudStorageStreamingSink,
     ConsoleStreamingSink,
     DeltaStreamingSink,
     FileStreamingSink,
+    ForeachBatchSink,
     IcebergStreamingSink,
     KafkaStreamingSink,
 )
@@ -272,3 +275,165 @@ class TestFileStreamingSink:
     def test_default_output_mode(self) -> None:
         sink = FileStreamingSink(path="/output/data", checkpoint_location="/c")
         assert sink.output_mode == OutputMode.APPEND
+
+
+# ===================================================================
+# TestCloudStorageStreamingSink
+# ===================================================================
+
+
+class TestCloudStorageStreamingSink:
+    def _fluent_df(self) -> MagicMock:
+        df = MagicMock()
+        writer = MagicMock()
+        writer.option.return_value = writer
+        writer.partitionBy.return_value = writer
+        df.writeStream.format.return_value = writer
+        return df
+
+    def test_write_stream_builds_chain(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+
+        df.writeStream.format.assert_called_once_with("parquet")
+        writer = df.writeStream.format.return_value
+        writer.option.assert_any_call("path", "s3a://bucket/prefix")
+
+    def test_custom_format(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="gs://bucket/prefix",
+            file_format=CloudFileFormat.JSON,
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+        df.writeStream.format.assert_called_once_with("json")
+
+    def test_partition_by(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+            partition_by=["date", "region"],
+        )
+        sink.write_stream(df)
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_called_once_with("date", "region")
+
+    def test_no_partition_by(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+        writer = df.writeStream.format.return_value
+        writer.partitionBy.assert_not_called()
+
+    def test_compression(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+            compression="gzip",
+        )
+        sink.write_stream(df)
+        writer = df.writeStream.format.return_value
+        writer.option.assert_any_call("compression", "gzip")
+
+    def test_no_compression_when_none(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+        writer = df.writeStream.format.return_value
+        for call in writer.option.call_args_list:
+            assert call[0][0] != "compression"
+
+    def test_extra_options(self) -> None:
+        df = self._fluent_df()
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+            options={"maxRecordsPerFile": "100000"},
+        )
+        sink.write_stream(df)
+        writer = df.writeStream.format.return_value
+        writer.option.assert_any_call("maxRecordsPerFile", "100000")
+
+    def test_default_output_mode(self) -> None:
+        sink = CloudStorageStreamingSink(
+            path="s3a://bucket/prefix",
+            checkpoint_location="/ckpt",
+        )
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_cloud_file_format_enum(self) -> None:
+        assert CloudFileFormat.PARQUET.value == "parquet"
+        assert CloudFileFormat.JSON.value == "json"
+        assert CloudFileFormat.CSV.value == "csv"
+        assert CloudFileFormat.AVRO.value == "avro"
+        assert CloudFileFormat.ORC.value == "orc"
+
+    def test_all_format_types(self) -> None:
+        for fmt in CloudFileFormat:
+            df = self._fluent_df()
+            sink = CloudStorageStreamingSink(
+                path="s3a://b/p",
+                file_format=fmt,
+                checkpoint_location="/ckpt",
+            )
+            sink.write_stream(df)
+            df.writeStream.format.assert_called_once_with(fmt.value)
+
+
+# ===================================================================
+# TestForeachBatchSink
+# ===================================================================
+
+
+class TestForeachBatchSink:
+    def test_write_stream_uses_foreach_batch(self) -> None:
+        df = MagicMock()
+        callback = MagicMock()
+        sink = ForeachBatchSink(
+            process_batch=callback,
+            checkpoint_location="/ckpt",
+        )
+        sink.write_stream(df)
+        df.writeStream.foreachBatch.assert_called_once_with(callback)
+
+    def test_default_output_mode(self) -> None:
+        sink = ForeachBatchSink(
+            process_batch=lambda df, bid: None,
+            checkpoint_location="/ckpt",
+        )
+        assert sink.output_mode == OutputMode.APPEND
+
+    def test_checkpoint_location(self) -> None:
+        sink = ForeachBatchSink(
+            process_batch=lambda df, bid: None,
+            checkpoint_location="/my/ckpt",
+        )
+        assert sink.checkpoint_location == "/my/ckpt"
+
+    def test_custom_output_mode(self) -> None:
+        sink = ForeachBatchSink(
+            process_batch=lambda df, bid: None,
+            checkpoint_location="/ckpt",
+            output_mode=OutputMode.UPDATE,
+        )
+        assert sink.output_mode == OutputMode.UPDATE
+
+    def test_query_name_default_none(self) -> None:
+        sink = ForeachBatchSink(
+            process_batch=lambda df, bid: None,
+            checkpoint_location="/ckpt",
+        )
+        assert sink.query_name is None

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import enum
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -125,3 +126,124 @@ class RateStreamingSource(StreamingSource):
             .option("numPartitions", self.num_partitions)
             .load()
         )
+
+
+# ---------------------------------------------------------------------------
+# Azure EventHubs
+# ---------------------------------------------------------------------------
+
+
+class EventHubsStartingPosition(str, enum.Enum):
+    """Starting position for Azure EventHubs consumer."""
+
+    START_OF_STREAM = "start_of_stream"
+    END_OF_STREAM = "end_of_stream"
+
+
+@dataclass
+class EventHubsStreamingSource(StreamingSource):
+    """Azure EventHubs streaming source.
+
+    Requires the ``azure-eventhubs-spark`` connector on the classpath.
+
+    Args:
+        connection_string: EventHubs SAS connection string.
+        event_hub_name: Name of the EventHub.
+        consumer_group: Consumer group name.
+        starting_position: Where to begin reading.
+        max_events_per_trigger: Maximum events per micro-batch.
+        receiver_timeout: Receiver timeout (e.g. ``"60"``).
+        operation_timeout: Operation timeout (e.g. ``"60"``).
+        options: Additional reader options.
+    """
+
+    connection_string: str
+    event_hub_name: str
+    consumer_group: str = "$Default"
+    starting_position: EventHubsStartingPosition = EventHubsStartingPosition.END_OF_STREAM
+    max_events_per_trigger: int | None = None
+    receiver_timeout: str | None = None
+    operation_timeout: str | None = None
+    options: dict[str, str] = field(default_factory=dict)
+
+    def read_stream(self, spark: SparkSession) -> DataFrame:
+        reader = spark.readStream.format("eventhubs")
+        reader = reader.option("eventhubs.connectionString", self.connection_string)
+        reader = reader.option("eventhubs.name", self.event_hub_name)
+        reader = reader.option("eventhubs.consumerGroup", self.consumer_group)
+
+        position = (
+            '{"offset": "-1", "isInclusive": true}'
+            if self.starting_position == EventHubsStartingPosition.START_OF_STREAM
+            else '{"offset": "@latest"}'
+        )
+        reader = reader.option("eventhubs.startingPosition", position)
+
+        if self.max_events_per_trigger is not None:
+            reader = reader.option("maxEventsPerTrigger", str(self.max_events_per_trigger))
+        if self.receiver_timeout is not None:
+            reader = reader.option("eventhubs.receiverTimeout", self.receiver_timeout)
+        if self.operation_timeout is not None:
+            reader = reader.option("eventhubs.operationTimeout", self.operation_timeout)
+
+        for key, value in self.options.items():
+            reader = reader.option(key, value)
+        return reader.load()
+
+
+# ---------------------------------------------------------------------------
+# AWS Kinesis
+# ---------------------------------------------------------------------------
+
+
+class KinesisStartingPosition(str, enum.Enum):
+    """Starting position for AWS Kinesis consumer."""
+
+    LATEST = "latest"
+    TRIM_HORIZON = "trim_horizon"
+
+
+@dataclass
+class KinesisStreamingSource(StreamingSource):
+    """AWS Kinesis streaming source.
+
+    Requires the ``spark-sql-kinesis`` connector on the classpath.
+
+    Args:
+        stream_name: Kinesis stream name.
+        region: AWS region (e.g. ``"us-east-1"``).
+        starting_position: Where to begin reading.
+        endpoint_url: Custom endpoint URL (e.g. for LocalStack).
+        max_fetch_records_per_shard: Max records per shard per fetch.
+        max_fetch_time_per_shard_sec: Max time (sec) per shard fetch.
+        options: Additional reader options.
+    """
+
+    stream_name: str
+    region: str
+    starting_position: KinesisStartingPosition = KinesisStartingPosition.LATEST
+    endpoint_url: str | None = None
+    max_fetch_records_per_shard: int | None = None
+    max_fetch_time_per_shard_sec: int | None = None
+    options: dict[str, str] = field(default_factory=dict)
+
+    def read_stream(self, spark: SparkSession) -> DataFrame:
+        reader = spark.readStream.format("kinesis")
+        reader = reader.option("streamName", self.stream_name)
+        reader = reader.option("region", self.region)
+        reader = reader.option("startingPosition", self.starting_position.value)
+
+        if self.endpoint_url is not None:
+            reader = reader.option("endpointUrl", self.endpoint_url)
+        if self.max_fetch_records_per_shard is not None:
+            reader = reader.option(
+                "maxFetchRecordsPerShard", str(self.max_fetch_records_per_shard)
+            )
+        if self.max_fetch_time_per_shard_sec is not None:
+            reader = reader.option(
+                "maxFetchTimePerShardSec", str(self.max_fetch_time_per_shard_sec)
+            )
+
+        for key, value in self.options.items():
+            reader = reader.option(key, value)
+        return reader.load()
